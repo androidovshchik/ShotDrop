@@ -26,13 +26,19 @@ public class ActivityMain extends DropboxPreferenceActivity {
 
     @Override
     protected void loadData() {
+        final Prefs prefs = new Prefs(getApplicationContext());
+        if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && (!prefs.has(Prefs.USER_EMAIL) ||
+                !prefs.has(Prefs.USER_DISPLAY_NAME))) {
+            Toast.makeText(getApplicationContext(), getString(R.string.alert_wait),
+                    Toast.LENGTH_SHORT)
+                    .show();
+        }
         new GetCurrentAccountTask(DropboxClientFactory.getClient(),
                 new GetCurrentAccountTask.Callback() {
                     @Override
                     public void onComplete(FullAccount result) {
                         Timber.d(result.getEmail());
                         Timber.d(result.getName().getDisplayName());
-                        Prefs prefs = new Prefs(getApplicationContext());
                         prefs.putBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT, true);
                         prefs.putString(Prefs.USER_EMAIL, result.getEmail());
                         prefs.putString(Prefs.USER_DISPLAY_NAME, result.getName()
