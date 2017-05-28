@@ -8,6 +8,8 @@ import android.widget.ListView;
 
 import com.dropbox.core.android.Auth;
 
+import timber.log.Timber;
+
 public class FragmentSettings extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener {
 
@@ -36,14 +38,14 @@ public class FragmentSettings extends PreferenceFragment
             case Prefs.ENABLE_DROPBOX_ACCOUNT:
                 Auth.startOAuth2Authentication(getActivity(), getString(R.string.app_key));
                 return false;
-            case Prefs.ENABLE_APPLICATION:
-                break;
-            case Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI:
-                break;
-            case Prefs.ENABLE_START_AFTER_REBOOT:
-                break;
         }
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Timber.d("onResume");
     }
 
     @Override

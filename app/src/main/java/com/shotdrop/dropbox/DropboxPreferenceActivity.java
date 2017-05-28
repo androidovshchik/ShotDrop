@@ -1,10 +1,10 @@
 package com.shotdrop.dropbox;
 
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatDelegate;
@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.dropbox.core.android.Auth;
+import com.shotdrop.Prefs;
 
 /**
  * Base class for Activities that require auth tokens
@@ -47,6 +48,7 @@ public abstract class DropboxPreferenceActivity extends PreferenceActivity {
     }
 
     @Override
+    @NonNull
     public MenuInflater getMenuInflater() {
         return getDelegate().getMenuInflater();
     }
@@ -75,22 +77,23 @@ public abstract class DropboxPreferenceActivity extends PreferenceActivity {
     protected void onResume() {
         super.onResume();
 
-        SharedPreferences prefs = getSharedPreferences("dropbox-sample", MODE_PRIVATE);
-        String accessToken = prefs.getString("access-token", null);
-        if (accessToken == null) {
-            accessToken = Auth.getOAuth2Token();
+        Prefs prefs = new Prefs(getApplicationContext());
+        if (!prefs.has(Prefs.ACCESS_TOKEN)) {
+            String accessToken = Auth.getOAuth2Token();
             if (accessToken != null) {
-                prefs.edit().putString("access-token", accessToken).apply();
+                prefs.putString(Prefs.ACCESS_TOKEN, accessToken);
                 initAndLoadData(accessToken);
             }
         } else {
-            initAndLoadData(accessToken);
+            initAndLoadData(prefs.getString(Prefs.ACCESS_TOKEN));
         }
 
         String uid = Auth.getUid();
-        String storedUid = prefs.getString("user-id", null);
-        if (uid != null && !uid.equals(storedUid)) {
-            prefs.edit().putString("user-id", uid).apply();
+        if (prefs.has(Prefs.USER_ID)) {
+            String storedUid = prefs.getString(Prefs.USER_ID);
+            if (!uid.equals(storedUid)) {
+                prefs.putString(Prefs.USER_ID, uid);
+            }
         }
     }
 
@@ -126,13 +129,10 @@ public abstract class DropboxPreferenceActivity extends PreferenceActivity {
 
     private void initAndLoadData(String accessToken) {
         DropboxClientFactory.init(accessToken);
+        loadData();
     }
 
-    protected boolean hasToken() {
-        SharedPreferences prefs = getSharedPreferences("dropbox-sample", MODE_PRIVATE);
-        String accessToken = prefs.getString("access-token", null);
-        return accessToken != null;
-    }
+    protected abstract void loadData();
 
     public void invalidateOptionsMenu() {
         getDelegate().invalidateOptionsMenu();

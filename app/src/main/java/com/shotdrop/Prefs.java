@@ -16,6 +16,10 @@ public final class Prefs {
 
     /* Preferences */
     public static final String APP_RESTRICTIONS = "App Restrictions";
+
+    public static final String ACCESS_TOKEN = "accessToken";
+    public static final String USER_ID = "userId";
+
     public static final String ENABLE_DROPBOX_ACCOUNT = "enableDropboxAccount";
     public static final String ENABLE_APPLICATION = "enableApplication";
     public static final String ENABLE_UPLOAD_ONLY_BY_WIFI = "enableUploadOnlyByWifi";
@@ -39,7 +43,7 @@ public final class Prefs {
 
     @SuppressWarnings("unused")
     public <T> String getString(String name, T def) {
-        return preferences.getString(name, str(def)).trim();
+        return preferences.getString(name, toString(def)).trim();
     }
 
     @SuppressWarnings("unused")
@@ -53,12 +57,12 @@ public final class Prefs {
     }
 
     @SuppressWarnings("unused")
-    public <T> void putStr(String name, T value) {
-        preferences.edit().putString(name, str(value)).apply();
+    public <T> void putString(String name, T value) {
+        preferences.edit().putString(name, toString(value)).apply();
     }
 
     @SuppressWarnings("unused")
-    public void putBool(String name, boolean value) {
+    public void putBoolean(String name, boolean value) {
         preferences.edit().putBoolean(name, value).apply();
     }
 
@@ -84,7 +88,7 @@ public final class Prefs {
     /* Utils functions */
 
     @SuppressWarnings("unused")
-    public <T> String str(T value) {
+    public <T> String toString(T value) {
         return String.class.isInstance(value)? ((String) value).trim() : String.valueOf(value);
     }
 
