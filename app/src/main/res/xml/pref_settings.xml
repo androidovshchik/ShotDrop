@@ -1,0 +1,34 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:layout="@layout/preference_space"/>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="enableDropboxAccount"
+        android:title="@string/settings.dropbox_account" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="enableApplication"
+        android:title="@string/settings.turn_on" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="enableUploadOnlyByWifi"
+        android:title="@string/settings.only_wifi" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="enableStartAfterReboot"
+        android:title="@string/settings.after_reboot" />
+
+    <PreferenceCategory
+        android:title="Разработчик"
+        android:summary="Калюжный Влад <gimrcpp@gmail.com>"
+        android:layout="@layout/preference_category_summary"/>
+
+    <PreferenceCategory
+        android:layout="@layout/preference_space"/>
+
+</PreferenceScreen>
