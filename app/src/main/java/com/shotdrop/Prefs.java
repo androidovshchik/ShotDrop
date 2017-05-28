@@ -19,6 +19,8 @@ public final class Prefs {
 
     public static final String ACCESS_TOKEN = "accessToken";
     public static final String USER_ID = "userId";
+    public static final String USER_EMAIL = "userEmail";
+    public static final String USER_DISPLAY_NAME = "userDisplayName";
 
     public static final String ENABLE_DROPBOX_ACCOUNT = "enableDropboxAccount";
     public static final String ENABLE_APPLICATION = "enableApplication";
@@ -83,6 +85,14 @@ public final class Prefs {
         if (has(name)) {
             preferences.edit().remove(name).apply();
         }
+    }
+
+    @SuppressWarnings("unused")
+    public void logout() {
+        remove(ACCESS_TOKEN);
+        remove(USER_ID);
+        remove(USER_EMAIL);
+        remove(USER_DISPLAY_NAME);
     }
 
     /* Utils functions */

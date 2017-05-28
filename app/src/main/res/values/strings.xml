@@ -2,8 +2,13 @@
     <string name="app_name">ShotDrop++</string>
     <string name="app_key">mgb2x5okpatw1g1</string>
 
+    <string name="prompt.logout">Вы уверены, что хотите открепить аккаунт?</string>
+
     <string name="settings.dropbox_account">Аккаунт Dropbox</string>
     <string name="settings.turn_on">Включить приложение</string>
     <string name="settings.only_wifi">Загрузка по Wifi</string>
     <string name="settings.after_reboot">Автозапуск</string>
+
+    <string name="settings.user_title">Пользователь</string>
+    <string name="settings.user_info">%1$s &lt;%2$s&gt;</string>
 </resources>
