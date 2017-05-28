@@ -1,5 +1,6 @@
-package com.shotdrop;
+package com.shotdrop.dropbox;
 
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
@@ -12,13 +13,17 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.dropbox.core.android.Auth;
+
 /**
+ * Base class for Activities that require auth tokens
+ * Will redirect to auth flow if needed
  * A {@link android.preference.PreferenceActivity} which implements and proxies the necessary calls
  * to be used with AppCompat.
  */
-public abstract class AppCompatPreferenceActivity extends PreferenceActivity {
+public abstract class DropboxPreferenceActivity extends PreferenceActivity {
 
-    private AppCompatDelegate mDelegate;
+    private AppCompatDelegate delegate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +72,29 @@ public abstract class AppCompatPreferenceActivity extends PreferenceActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        SharedPreferences prefs = getSharedPreferences("dropbox-sample", MODE_PRIVATE);
+        String accessToken = prefs.getString("access-token", null);
+        if (accessToken == null) {
+            accessToken = Auth.getOAuth2Token();
+            if (accessToken != null) {
+                prefs.edit().putString("access-token", accessToken).apply();
+                initAndLoadData(accessToken);
+            }
+        } else {
+            initAndLoadData(accessToken);
+        }
+
+        String uid = Auth.getUid();
+        String storedUid = prefs.getString("user-id", null);
+        if (uid != null && !uid.equals(storedUid)) {
+            prefs.edit().putString("user-id", uid).apply();
+        }
+    }
+
+    @Override
     protected void onPostResume() {
         super.onPostResume();
         getDelegate().onPostResume();
@@ -96,14 +124,24 @@ public abstract class AppCompatPreferenceActivity extends PreferenceActivity {
         getDelegate().onDestroy();
     }
 
+    private void initAndLoadData(String accessToken) {
+        DropboxClientFactory.init(accessToken);
+    }
+
+    protected boolean hasToken() {
+        SharedPreferences prefs = getSharedPreferences("dropbox-sample", MODE_PRIVATE);
+        String accessToken = prefs.getString("access-token", null);
+        return accessToken != null;
+    }
+
     public void invalidateOptionsMenu() {
         getDelegate().invalidateOptionsMenu();
     }
 
     private AppCompatDelegate getDelegate() {
-        if (mDelegate == null) {
-            mDelegate = AppCompatDelegate.create(this, null);
+        if (delegate == null) {
+            delegate = AppCompatDelegate.create(this, null);
         }
-        return mDelegate;
+        return delegate;
     }
 }
