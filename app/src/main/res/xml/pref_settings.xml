@@ -8,6 +8,12 @@
         android:key="enableDropboxAccount"
         android:title="@string/settings.dropbox_account" />
 
+    <PreferenceCategory
+        android:key="userInfo"
+        android:title="Пользователь"
+        android:summary="Калюжный Влад &lt;gimrcpp@gmail.com&gt;"
+        android:layout="@layout/preference_category_summary"/>
+
     <SwitchPreference
         android:defaultValue="false"
         android:key="enableApplication"
