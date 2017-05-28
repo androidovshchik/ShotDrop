@@ -2,6 +2,8 @@ package com.shotdrop;
 
 import android.app.Application;
 
+import com.shotdrop.utils.Prefs;
+
 import timber.log.Timber;
 
 public class ShortDrop extends Application {

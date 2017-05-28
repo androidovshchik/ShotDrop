@@ -13,6 +13,7 @@ import android.widget.ListView;
 import com.dropbox.core.android.Auth;
 import com.dropbox.core.android.AuthActivity;
 import com.shotdrop.dropbox.DropboxClientFactory;
+import com.shotdrop.utils.Prefs;
 
 public class FragmentSettings extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener, DialogInterface.OnClickListener {
@@ -78,7 +79,6 @@ public class FragmentSettings extends PreferenceFragment
                 // TODO: insert method DbxUserAuthRequests.tokenRevoke(); More info here https://github.com/dropbox/dropbox-sdk-java/issues/92
                 DropboxClientFactory.clearClient();
                 AuthActivity.result = null;
-                prefs.putBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT, false);
                 prefs.logout();
                 applyAccountInfo(null, null);
                 break;

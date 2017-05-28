@@ -4,7 +4,7 @@ import java.util.Collections;
 
 import timber.log.Timber;
 
-public final class LogUtils {
+public final class LogUtil {
 
     private static int STYLED_LOG_LENGTH = 48;
 

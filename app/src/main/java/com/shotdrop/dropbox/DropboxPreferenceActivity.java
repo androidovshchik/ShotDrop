@@ -14,7 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.dropbox.core.android.Auth;
-import com.shotdrop.Prefs;
+import com.shotdrop.utils.Prefs;
 
 /**
  * Base class for Activities that require auth tokens

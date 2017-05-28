@@ -8,6 +8,7 @@ import com.dropbox.core.v2.users.FullAccount;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.DropboxPreferenceActivity;
 import com.shotdrop.dropbox.GetCurrentAccountTask;
+import com.shotdrop.utils.Prefs;
 
 import timber.log.Timber;
 

@@ -1,10 +1,8 @@
-package com.shotdrop;
+package com.shotdrop.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
-import com.shotdrop.utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -89,6 +87,7 @@ public final class Prefs {
 
     @SuppressWarnings("unused")
     public void logout() {
+        putBoolean(ENABLE_DROPBOX_ACCOUNT, false);
         remove(ACCESS_TOKEN);
         remove(USER_ID);
         remove(USER_EMAIL);
@@ -116,11 +115,11 @@ public final class Prefs {
             }
         });
         String classname = getClass().getSimpleName();
-        LogUtils.logDivider(classname, "~");
-        LogUtils.logCentered(" ", classname, "Printing all sharedPreferences");
+        LogUtil.logDivider(classname, "~");
+        LogUtil.logCentered(" ", classname, "Printing all sharedPreferences");
         for(Map.Entry<String, ?> entry : list) {
-            LogUtils.tag(classname).i(entry.getKey() + ": " + entry.getValue());
+            LogUtil.tag(classname).i(entry.getKey() + ": " + entry.getValue());
         }
-        LogUtils.logDivider(classname, "~");
+        LogUtil.logDivider(classname, "~");
     }
 }
