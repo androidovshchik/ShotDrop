@@ -38,16 +38,6 @@ public final class ViewUtil {
     }
 
     @SuppressWarnings("unused")
-    public static int getStatusBarHeight(Context context) {
-        int result = 0, resourceId = context.getResources()
-                .getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = context.getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
-    }
-
-    @SuppressWarnings("unused")
     public static void hideView(View view) {
         if (view.getVisibility() == View.VISIBLE) {
             view.setVisibility(View.GONE);
