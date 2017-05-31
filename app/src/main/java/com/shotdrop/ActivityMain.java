@@ -49,7 +49,7 @@ public class ActivityMain extends DropboxPreferenceActivity implements
         final Prefs prefs = new Prefs(getApplicationContext());
         if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && (!prefs.has(Prefs.USER_EMAIL) ||
                 !prefs.has(Prefs.USER_DISPLAY_NAME))) {
-            Toast.makeText(getApplicationContext(), getString(R.string.alert_wait),
+            Toast.makeText(getApplicationContext(), getString(R.string.alert_login),
                     Toast.LENGTH_SHORT)
                     .show();
         }

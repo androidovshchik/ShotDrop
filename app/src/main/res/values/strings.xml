@@ -2,7 +2,8 @@
     <string name="app_name">ShotDrop++</string>
     <string name="app_key">mgb2x5okpatw1g1</string>
 
-    <string name="alert.wait">Подождите&#8230; Обновляется информация</string>
+    <string name="alert.login">Подождите&#8230; Обновляется информация</string>
+    <string name="alert.logout">Подождите&#8230; Отзывается токен</string>
     <string name="prompt.logout">Вы уверены, что хотите открепить аккаунт?</string>
     <string name="prompt.permissions">Доступны не все разрешения, поробовать еще раз?</string>
     <string name="prompt.settings">Для работы приложения необходимо вручную дать разрешения</string>

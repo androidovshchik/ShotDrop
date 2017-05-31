@@ -9,11 +9,15 @@ import android.preference.SwitchPreference;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.dropbox.core.android.Auth;
 import com.dropbox.core.android.AuthActivity;
 import com.shotdrop.dropbox.DropboxClientFactory;
+import com.shotdrop.dropbox.RevokeToken;
 import com.shotdrop.utils.Prefs;
+
+import timber.log.Timber;
 
 public class FragmentSettings extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener, DialogInterface.OnClickListener {
@@ -49,6 +53,7 @@ public class FragmentSettings extends PreferenceFragment
             applyAccountInfo(prefs.getString(Prefs.USER_EMAIL),
                     prefs.getString(Prefs.USER_DISPLAY_NAME));
         }
+        //startService(ServiceMain.getStartIntent(getApplicationContext()));
     }
 
     @Override
@@ -76,14 +81,32 @@ public class FragmentSettings extends PreferenceFragment
     public void onClick(DialogInterface dialog, int which) {
         switch (which){
             case DialogInterface.BUTTON_POSITIVE:
-                // TODO: insert method DbxUserAuthRequests.tokenRevoke(); More info here https://github.com/dropbox/dropbox-sdk-java/issues/92
-                DropboxClientFactory.clearClient();
-                AuthActivity.result = null;
-                prefs.logout();
-                applyAccountInfo(null, null);
+                Toast.makeText(getActivity().getApplicationContext(),
+                        getString(R.string.alert_logout), Toast.LENGTH_SHORT)
+                        .show();
+                new RevokeToken(DropboxClientFactory.getClient(),
+                        new RevokeToken.Callback() {
+                            @Override
+                            public void onComplete() {
+                                logout();
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Timber.e(e.getMessage());
+                                logout();
+                            }
+                        }).execute();
                 break;
         }
         dialog.dismiss();
+    }
+
+    private void logout() {
+        DropboxClientFactory.clearClient();
+        AuthActivity.result = null;
+        prefs.logout();
+        applyAccountInfo(null, null);
     }
 
     public void applyAccountInfo(@Nullable String email, @Nullable String displayName) {
