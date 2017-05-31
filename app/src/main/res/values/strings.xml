@@ -4,6 +4,8 @@
 
     <string name="alert.wait">Подождите&#8230; Обновляется информация</string>
     <string name="prompt.logout">Вы уверены, что хотите открепить аккаунт?</string>
+    <string name="prompt.permissions">Доступны не все разрешения, поробовать еще раз?</string>
+    <string name="prompt.settings">Для работы приложения необходимо вручную дать разрешения</string>
 
     <string name="settings.dropbox_account">Аккаунт Dropbox</string>
     <string name="settings.turn_on">Включить приложение</string>

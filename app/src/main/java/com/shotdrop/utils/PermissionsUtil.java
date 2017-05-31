@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 
 public final class PermissionsUtil {
 
-    private static final String[] ALL_PERMISSIONS = new String[] {
+    public static final String[] ALL_PERMISSIONS = new String[] {
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.ACCESS_WIFI_STATE,
