@@ -23,6 +23,9 @@ public class FragmentSettings extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener, DialogInterface.OnClickListener {
 
     private SwitchPreference enableDropboxAccount;
+    private SwitchPreference enableApplication;
+    private SwitchPreference enableUploadOnlyByWifi;
+    private SwitchPreference enableStartAfterReboot;
 
     private PreferenceCategory userInfo;
 
@@ -39,13 +42,15 @@ public class FragmentSettings extends PreferenceFragment
                 .findPreference(Prefs.ENABLE_DROPBOX_ACCOUNT);
         enableDropboxAccount.setChecked(prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT));
         enableDropboxAccount.setOnPreferenceChangeListener(this);
-
-        SwitchPreference enableApplication = (SwitchPreference) getPreferenceManager()
+        enableApplication = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_APPLICATION);
-        SwitchPreference enableUploadOnlyByWifi = (SwitchPreference) getPreferenceManager()
+        enableApplication.setOnPreferenceChangeListener(this);
+        enableUploadOnlyByWifi = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI);
-        SwitchPreference enableStartAfterReboot = (SwitchPreference) getPreferenceManager()
+        enableUploadOnlyByWifi.setOnPreferenceChangeListener(this);
+        enableStartAfterReboot = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_START_AFTER_REBOOT);
+        enableStartAfterReboot.setOnPreferenceChangeListener(this);
 
         userInfo = (PreferenceCategory) getPreferenceManager().findPreference("userInfo");
         if (prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && prefs.has(Prefs.USER_EMAIL) &&
@@ -58,21 +63,41 @@ public class FragmentSettings extends PreferenceFragment
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                .create();
         switch (preference.getKey()) {
             case Prefs.ENABLE_DROPBOX_ACCOUNT:
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,
+                        getString(android.R.string.cancel), this);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
+                        getString(android.R.string.ok), this);
                 if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT)) {
                     Auth.startOAuth2Authentication(getActivity(), getString(R.string.app_key));
                 } else {
-                    AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
-                            .create();
                     alertDialog.setMessage(getString(R.string.prompt_logout));
-                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,
-                            getString(android.R.string.cancel), this);
-                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
-                            getString(android.R.string.ok), this);
                     alertDialog.show();
                 }
                 return false;
+            case Prefs.ENABLE_APPLICATION:
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,
+                        getString(android.R.string.ok), this);
+                if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT)) {
+                    alertDialog.setMessage(getString(R.string.prompt_require_account));
+                    alertDialog.show();
+                    return false;
+                } else {
+                    return true;
+                }
+            case Prefs.ENABLE_START_AFTER_REBOOT: case Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI:
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,
+                        getString(android.R.string.ok), this);
+                if (!prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                    alertDialog.setMessage(getString(R.string.prompt_require_app));
+                    alertDialog.show();
+                    return false;
+                } else {
+                    return true;
+                }
         }
         return true;
     }
@@ -111,6 +136,9 @@ public class FragmentSettings extends PreferenceFragment
 
     public void applyAccountInfo(@Nullable String email, @Nullable String displayName) {
         enableDropboxAccount.setChecked(prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT));
+        enableApplication.setChecked(prefs.getBoolean(Prefs.ENABLE_APPLICATION));
+        enableStartAfterReboot.setChecked(prefs.getBoolean(Prefs.ENABLE_START_AFTER_REBOOT));
+        enableUploadOnlyByWifi.setChecked(prefs.getBoolean(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI));
         if (email == null || displayName == null) {
             userInfo.setTitle("");
             userInfo.setSummary("");

@@ -88,6 +88,9 @@ public final class Prefs {
     @SuppressWarnings("unused")
     public void logout() {
         putBoolean(ENABLE_DROPBOX_ACCOUNT, false);
+        putBoolean(ENABLE_APPLICATION, false);
+        putBoolean(ENABLE_START_AFTER_REBOOT, false);
+        putBoolean(ENABLE_UPLOAD_ONLY_BY_WIFI, false);
         remove(ACCESS_TOKEN);
         remove(USER_ID);
         remove(USER_EMAIL);

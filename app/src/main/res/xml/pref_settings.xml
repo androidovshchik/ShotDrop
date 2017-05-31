@@ -29,7 +29,7 @@
 
     <PreferenceCategory
         android:title="Разработчик"
-        android:summary="Калюжный Влад &lt;gimrcpp@gmail.com&gt;"
+        android:summary="Влад &lt;gimrcpp@gmail.com&gt;"
         android:layout="@layout/preference_category_summary"/>
 
     <PreferenceCategory
