@@ -19,6 +19,10 @@ import com.shotdrop.dropbox.GetCurrentAccountTask;
 import com.shotdrop.utils.PermissionsUtil;
 import com.shotdrop.utils.Prefs;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import timber.log.Timber;
 
 public class ActivityMain extends DropboxPreferenceActivity implements
@@ -144,5 +148,34 @@ public class ActivityMain extends DropboxPreferenceActivity implements
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.fromParts("package", getPackageName(), null));
         startActivityForResult(intent, REQUEST_SETTINGS);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        sendLogcatMail();
+    }
+
+    private void sendLogcatMail() {
+        StringBuilder logcat = new StringBuilder();
+        try {
+            Process process = Runtime.getRuntime().exec("logcat -d");
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                logcat.append(line);
+            }
+        } catch (IOException e) {
+            Timber.e(e.getLocalizedMessage());
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] {
+                "gimrcpp@gmail.com"
+        });
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Логи");
+        intent.putExtra(Intent.EXTRA_TEXT, logcat.toString());
+        startActivity(Intent.createChooser(intent , "Отправить логи..."));
     }
 }

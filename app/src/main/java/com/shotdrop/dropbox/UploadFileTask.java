@@ -20,8 +20,8 @@ import java.io.InputStream;
  */
 public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> {
 
-    public static final String PATH = Environment.getExternalStorageDirectory().toString() +
-            "/Pictures/Screenshots/";
+    public static final String PATH = Environment.getExternalStoragePublicDirectory(Environment
+            .DIRECTORY_PICTURES) + "/Screenshots/";
 
     public final int notificationId;
 
