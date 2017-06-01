@@ -14,7 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
-import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.UploadFileTask;
 import com.shotdrop.utils.ClipboardUtil;
@@ -134,11 +134,11 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         tasks.add(new UploadFileTask(notificationId, DropboxClientFactory
                 .getClient(getApplicationContext()), new UploadFileTask.Callback() {
             @Override
-            public void onUploadComplete(FileMetadata result) {
-                Timber.d("onUploadComplete: " + result.toString());
+            public void onUploadComplete(SharedLinkMetadata result) {
+                Timber.d("onUploadComplete: " + result.getUrl());
                 notificationManager.cancel(notificationId);
                 removeTask(notificationId);
-                ClipboardUtil.copy(getApplicationContext(), result.getPathDisplay());
+                ClipboardUtil.copy(getApplicationContext(), result.getUrl());
             }
 
             @Override
