@@ -115,11 +115,6 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     @Override
     public void onScreenshotTaken(String filename) {
-        if (!conditions.checkOptional()) {
-            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
-                    "Остановлен по опциональным условиям", null);
-            return;
-        }
         newUploadTask(filename);
     }
 
@@ -127,6 +122,11 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
      * New task. New notification
      */
     private void newUploadTask(final String filename) {
+        if (!conditions.checkOptional()) {
+            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                    "Остановлен по опциональным условиям", null);
+            return;
+        }
         showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                 "К загрузке " + filename, null);
         final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
@@ -145,13 +145,15 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
             @Override
             public void onError(@Nullable Exception e) {
-                Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
+                String error = e == null ? "Возможно проблемы с подключением" :
+                        e.getLocalizedMessage();
+                Timber.e(error);
                 notificationManager.cancel(notificationId);
                 removeTask(notificationId);
                 showNotification(NOTIFICATION_TYPE_REPEAT, filename,
                         "Не удалось загрузить ¯\\(ツ)/¯", null);
                 showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
-                        "Возможно проблемы с подключением", null);
+                        error, null);
             }
         }));
         tasks.get(tasks.size() - 1).execute(filename);

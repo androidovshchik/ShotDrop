@@ -82,9 +82,9 @@ public class ActivityMain extends DropboxPreferenceActivity implements
 
                     @Override
                     public void onError(Exception e) {
-                        Timber.e(e.getMessage());
-                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT)
-                                .show();
+                        Timber.e(e.getLocalizedMessage());
+                        Toast.makeText(getApplicationContext(), e.getLocalizedMessage(),
+                                Toast.LENGTH_SHORT).show();
                     }
                 }).execute();
     }
