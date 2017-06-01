@@ -46,7 +46,7 @@
         <receiver
             android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
-            android:name=".receivers.DeviceBootReceiver">
+            android:name=".DeviceBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />

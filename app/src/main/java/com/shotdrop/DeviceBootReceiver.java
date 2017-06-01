@@ -1,4 +1,4 @@
-package com.shotdrop.receivers;
+package com.shotdrop;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
