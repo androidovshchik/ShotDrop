@@ -120,8 +120,6 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
-                "К загрузке " + filename, null);
         newUploadTask(filename);
     }
 
@@ -129,6 +127,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
      * New task. New notification
      */
     private void newUploadTask(final String filename) {
+        showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                "К загрузке " + filename, null);
         final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
         tasks.add(new UploadFileTask(notificationId, DropboxClientFactory
@@ -139,6 +139,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 notificationManager.cancel(notificationId);
                 removeTask(notificationId);
                 ClipboardUtil.copy(getApplicationContext(), result.getUrl());
+                showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                        "Загружен и скопирован " + filename, null);
             }
 
             @Override
@@ -148,6 +150,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 removeTask(notificationId);
                 showNotification(NOTIFICATION_TYPE_REPEAT, filename,
                         "Не удалось загрузить ¯\\(ツ)/¯", null);
+                showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                        "Возможно проблемы с подключением", null);
             }
         }));
         tasks.get(tasks.size() - 1).execute(filename);
