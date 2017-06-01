@@ -12,8 +12,7 @@ public final class PermissionsUtil {
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WAKE_LOCK,
-            Manifest.permission.RECEIVE_BOOT_COMPLETED,
-            Manifest.permission.READ_LOGS
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
     };
 
     public static boolean hasPermission(Context context, String permission) {

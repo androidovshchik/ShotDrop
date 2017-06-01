@@ -80,8 +80,10 @@ public class ActivityMain extends DropboxPreferenceActivity implements
                         prefs.putString(Prefs.USER_EMAIL, result.getEmail());
                         prefs.putString(Prefs.USER_DISPLAY_NAME, result.getName()
                                 .getDisplayName());
-                        settings.applyAccountInfo(result.getEmail(), result.getName()
-                                .getDisplayName());
+                        if (!isFinishing()) {
+                            settings.applyAccountInfo(result.getEmail(), result.getName()
+                                    .getDisplayName());
+                        }
                     }
 
                     @Override

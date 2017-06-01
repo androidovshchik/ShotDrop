@@ -27,6 +27,11 @@
         android:key="enableStartAfterReboot"
         android:title="@string/settings.after_reboot" />
 
+    <EditTextPreference
+        android:key="screenshotsPath"
+        android:title="Путь к скриншотам"
+        android:dialogTitle="Путь к скриншотам" />
+
     <PreferenceCategory
         android:title="Разработчик"
         android:summary="Влад &lt;gimrcpp@gmail.com&gt;"
