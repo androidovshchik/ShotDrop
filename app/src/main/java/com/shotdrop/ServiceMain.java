@@ -22,6 +22,8 @@ import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.ScreenshotObserver;
 
+import java.util.ArrayList;
+
 import timber.log.Timber;
 
 public class ServiceMain extends Service implements ScreenshotObserver.Callback {
@@ -44,6 +46,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
     private Conditions conditions;
 
     private ScreenshotObserver screenshotObserver;
+
+    private ArrayList<UploadFileTask> tasks;
 
     private BroadcastReceiver cancelUploadReceiver = new BroadcastReceiver() {
 
@@ -81,6 +85,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new Conditions(getApplicationContext());
         screenshotObserver = new ScreenshotObserver(this);
+        tasks = new ArrayList<>();
     }
 
     public static Intent getStartIntent(Context context) {
@@ -112,24 +117,27 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         IS_WORKING = true;
         screenshotObserver.start();
         showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
-                "Служба запущена");
+                "Служба запущена", null);
     }
 
     @Override
     public void onScreenshotTaken(String filename) {
-        final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename, null);
-        new UploadFileTask(DropboxClientFactory.getClient(), new UploadFileTask.Callback() {
-            @Override
-            public void onUploadComplete(FileMetadata result) {
-                Timber.d("onUploadComplete");
-                notificationManager.cancel(notificationId);
-            }
+        int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename, null, null);
+        tasks.add(new UploadFileTask(notificationId, DropboxClientFactory.getClient(),
+                new UploadFileTask.Callback() {
+                    @Override
+                    public void onUploadComplete(FileMetadata result) {
+                        Timber.d("onUploadComplete");
+                        notificationManager.cancel(notificationId);
+                    }
 
-            @Override
-            public void onError(@Nullable Exception e) {
-                Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
-            }
-        }).execute(filename);
+                    @Override
+                    public void onError(@Nullable Exception e) {
+                        Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
+                        showNotification(NOTIFICATION_TYPE_REPEAT, )
+                    }
+                }));
+        tasks.get(tasks.size() - 1).execute(filename);
     }
 
     private void stopService() {
@@ -157,9 +165,10 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         return null;
     }
 
-    private int showNotification(int type, @NonNull String title, @Nullable String text) {
+    private int showNotification(int type, @NonNull String title, @Nullable String text,
+                                 @Nullable Integer prevNotificationId) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(type == NOTIFICATION_TYPE_PRIMARY ? R.drawable.ic_cloud_white_24dp :
+                .setSmallIcon(type == NOTIFICATION_TYPE_PRIMARY ? R.drawable.ic_dropbox_white :
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(title)
                 .setOngoing(true);
@@ -177,10 +186,13 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                         0, intent, 0));
                 break;
             case NOTIFICATION_TYPE_CANCEL:
-                lastNotificationId++;
-                notificationId = lastNotificationId;
-                intent = new Intent(getApplicationContext(), cancelUploadReceiver.getClass());
-                intent.setAction(NOTIFICATION_ACTION_CANCEL);
+                if (prevNotificationId != null) {
+                    notificationId = prevNotificationId;
+                } else {
+                    lastNotificationId++;
+                    notificationId = lastNotificationId;
+                }
+                intent = new Intent(NOTIFICATION_ACTION_CANCEL);
                 intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
@@ -188,10 +200,13 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                         PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
                 break;
             case NOTIFICATION_TYPE_REPEAT:
-                lastNotificationId++;
-                notificationId = lastNotificationId;
-                intent = new Intent(getApplicationContext(), cancelUploadReceiver.getClass());
-                intent.setAction(NOTIFICATION_ACTION_REPEAT);
+                if (prevNotificationId != null) {
+                    notificationId = prevNotificationId;
+                } else {
+                    lastNotificationId++;
+                    notificationId = lastNotificationId;
+                }
+                intent = new Intent(NOTIFICATION_ACTION_REPEAT);
                 intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.addAction(0, getString(R.string.notification_repeat),
