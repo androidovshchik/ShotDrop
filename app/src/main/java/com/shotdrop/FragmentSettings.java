@@ -2,6 +2,7 @@ package com.shotdrop;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
@@ -53,9 +54,15 @@ public class FragmentSettings extends PreferenceFragment
                 .findPreference(Prefs.ENABLE_START_AFTER_REBOOT);
         enableStartAfterReboot.setOnPreferenceChangeListener(this);
 
-        Preference screenshotsPath = getPreferenceManager()
+        if (!prefs.has(Prefs.SCREENSHOTS_PATH)) {
+            prefs.putString(Prefs.SCREENSHOTS_PATH, UploadFileTask.PATH);
+        }
+        String path = prefs.getString(Prefs.SCREENSHOTS_PATH, UploadFileTask.PATH);
+        EditTextPreference screenshotsPath = (EditTextPreference) getPreferenceManager()
                 .findPreference(Prefs.SCREENSHOTS_PATH);
-        screenshotsPath.setSummary(UploadFileTask.PATH);
+        screenshotsPath.setDefaultValue(UploadFileTask.PATH);
+        screenshotsPath.setText(path);
+        screenshotsPath.setOnPreferenceChangeListener(this);
 
         userInfo = (PreferenceCategory) getPreferenceManager().findPreference("userInfo");
         if (prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && prefs.has(Prefs.USER_EMAIL) &&
@@ -105,6 +112,11 @@ public class FragmentSettings extends PreferenceFragment
                     }
                     return true;
                 }
+            case Prefs.SCREENSHOTS_PATH:
+                Toast.makeText(getActivity().getApplicationContext(),
+                        getString(R.string.alert_restart), Toast.LENGTH_SHORT)
+                        .show();
+                return true;
         }
         return true;
     }
