@@ -6,7 +6,7 @@ import com.shotdrop.utils.Prefs;
 
 import timber.log.Timber;
 
-public class ShortDrop extends Application {
+public class ShotDrop extends Application {
 
     @Override
     public void onCreate() {

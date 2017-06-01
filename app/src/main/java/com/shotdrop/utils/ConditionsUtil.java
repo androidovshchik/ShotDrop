@@ -1,13 +1,9 @@
-package com.shotdrop.models;
+package com.shotdrop.utils;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
 
-import com.shotdrop.utils.LogUtil;
-import com.shotdrop.utils.PermissionsUtil;
-import com.shotdrop.utils.Prefs;
-
-public class Conditions {
+public class ConditionsUtil {
 
     private Prefs prefs;
 
@@ -23,7 +19,7 @@ public class Conditions {
     private boolean hasWifiConnection;
 
     @SuppressWarnings("all")
-    public Conditions(Context context) {
+    public ConditionsUtil(Context context) {
         prefs = new Prefs(context);
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
