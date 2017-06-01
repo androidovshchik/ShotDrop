@@ -12,38 +12,31 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 
+import com.shotdrop.receivers.CancelUploadReceiver;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.PermissionsUtil;
 import com.shotdrop.utils.Prefs;
+import com.shotdrop.utils.ScreenshotObserver;
 
-import java.util.LinkedList;
 import java.util.Locale;
-import java.util.Queue;
 
 import timber.log.Timber;
 
-public class ServiceMain extends Service {
+public class ServiceMain extends Service implements ScreenshotObserver.Callback {
 
     public static boolean IS_RUNNING;
-    public final static int COMMAND_UNKNOWN = -1;
-    public final static int COMMAND_STOP = 0;
-    public final static int COMMAND_RUN = 1;
+    public static boolean IS_WORKING;
 
-    private static final int NOTIFICATION_ID = 1;
-    private NotificationCompat.Builder builder;
+    private static final int NOTIFICATION_PRIMARY_ID = 1;
+    private int lastNotificationId = NOTIFICATION_PRIMARY_ID;
     private NotificationManager notificationManager;
-
-    private static final int PAUSE = 1250;
-    private static Queue<String> logcat = new LinkedList<>();
-    private Handler logDelay;
-    private int logPause = 0;
 
     private PowerManager.WakeLock wakeLock;
 
-    private boolean wifiIsEnabled;
-
     private Prefs prefs;
+
+    private ScreenshotObserver screenshotObserver;
 
     @Override
     public void onCreate() {
@@ -52,6 +45,10 @@ public class ServiceMain extends Service {
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 getClass().getSimpleName());
         wakeLock.acquire();
+        notificationManager = (NotificationManager) getApplicationContext()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        prefs = new Prefs(getApplicationContext());
+        screenshotObserver = new ScreenshotObserver(this);
     }
 
     public static Intent getStartIntent(Context context) {
@@ -82,46 +79,14 @@ public class ServiceMain extends Service {
             LogUtil.logDivider(classname, "#");
             LogUtil.logCentered(" ", classname, "Start service...");
             LogUtil.logDivider(classname, "#");
-            showNotification();
+            showNotification(true, "Служба запущена");
+            showNotification(false, "Filename1");
             initConditions();
             checkAllConditions();
         } else {
             return START_NOT_STICKY;
         }
         return START_STICKY;
-    }
-
-    private void showNotification() {
-        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_cloud_white_24dp)
-                .setContentTitle(getString(R.string.app_name))
-                .setAutoCancel(true);
-        Intent intent = new Intent(this, ActivityMain.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-        builder.setContentIntent(pendingIntent);
-
-        addMessage("Служба запущена");
-    }
-
-    private void addMessage(String text) {
-        logcat.add(text);
-        refreshNotification();
-    }
-
-    private boolean validNotificationConditions() {
-        return onlyWhen(Prefs.ENABLE_APPLICATION) && !logcat.isEmpty() && IS_RUNNING;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (builder != null) {
-            notificationManager.cancel(NOTIFICATION_ID);
-        }
-        wakeLock.release();
     }
 
     @Override
@@ -159,15 +124,6 @@ public class ServiceMain extends Service {
         }*/
     }
 
-    public void onNetworkState(boolean isWifiEnabled) {
-        Timber.i("!!! onNetworkState !!!");
-        wifiIsEnabled = isWifiEnabled;
-        Timber.i("wifiIsEnabled is %b", wifiIsEnabled);
-        addMessage(String.format(Locale.getDefault(),
-                "Wifi %s", isWifiEnabled ? "включен" : "выключен"));
-        checkAllConditions();
-    }
-
     private void stopService() {
         addMessage("Прерывание службы");
         Timber.i("!!! Stopping service !!!");
@@ -185,11 +141,13 @@ public class ServiceMain extends Service {
     private boolean checkAllConditions() {
         boolean hasAllConditions =  and (
                 PermissionsUtil.hasAllPermissions(getApplicationContext()),
+                onlyWhen(Prefs.ENABLE_DROPBOX_ACCOUNT),
                 onlyWhen(Prefs.ENABLE_APPLICATION),
                 or (
                         and (
                                 onlyWhen(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI),
-                                wifiIsEnabled
+                                ((WifiManager) getApplicationContext()
+                                        .getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()
                         ),
                         !onlyWhen(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI)
                 )
@@ -216,32 +174,36 @@ public class ServiceMain extends Service {
 
     }
 
-    private void initConditions() {
-        Timber.i("--- initConditions ---");
-        wifiIsEnabled = ((WifiManager) getApplicationContext()
-                .getSystemService(Context.WIFI_SERVICE)).isWifiEnabled();
-        Timber.i("wifiIsEnabled is %b", wifiIsEnabled);
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        notificationManager.cancelAll();
+        wakeLock.release();
     }
 
-    private static boolean or(boolean... booleans) {
-        for (boolean bool : booleans) {
-            if (bool) {
-                return true;
-            }
+    private void showNotification(boolean primary, String text) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(primary ? R.drawable.ic_cloud_white_24dp :
+                        R.drawable.ic_cloud_upload_white_24dp)
+                .setContentTitle(primary ? getString(R.string.app_name) : text)
+                .setAutoCancel(false);
+        int notificationId;
+        Intent intent;
+        if (primary) {
+            notificationId = NOTIFICATION_PRIMARY_ID;
+            intent = new Intent(getApplicationContext(), ActivityMain.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            builder.setContentText(text);
+            builder.setContentIntent(PendingIntent.getActivity(getApplicationContext(),
+                    0, intent, 0));
+        } else {
+            lastNotificationId++;
+            notificationId = lastNotificationId;
+            intent = new Intent(getApplicationContext(), CancelUploadReceiver.class);
+            intent.putExtra(CancelUploadReceiver.KEY_NOTIFICATION_ID, notificationId);
+            builder.addAction(0, getString(android.R.string.cancel),
+                    PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
         }
-        return false;
-    }
-
-    private static boolean and(boolean... booleans) {
-        for (boolean bool : booleans) {
-            if (!bool) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean onlyWhen(String key) {
-        return prefs.getBoolean(key);
+        notificationManager.notify(notificationId, builder.build());
     }
 }

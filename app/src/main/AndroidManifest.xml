@@ -43,8 +43,14 @@
         <service
             android:name=".ServiceMain"/>
         <receiver
-            android:name=".DeviceBootReceiver"
-            android:enabled="true">
+            android:name=".receivers.CancelUploadReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.shotdrop.intent.action.CANCEL" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receivers.DeviceBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

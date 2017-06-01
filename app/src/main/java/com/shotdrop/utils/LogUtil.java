@@ -8,7 +8,7 @@ public final class LogUtil {
 
     private static int STYLED_LOG_LENGTH = 48;
 
-    public static Timber.Tree tag(String tag) {
+    private static Timber.Tree tag(String tag) {
         return Timber.tag(tag);
     }
 
@@ -23,12 +23,6 @@ public final class LogUtil {
             edge = repeat(" ", (STYLED_LOG_LENGTH - length) / 2);
             text = character + "%s" + text + "%s" + (length % 2 == 0 ? "" : " ") + character;
         }
-        log(tag, text, edge);
-    }
-
-    public static void logCentered(String tag, String text) {
-        String edge = repeat(" ", (STYLED_LOG_LENGTH - text.length()) / 2);
-        text = "%s" + text + "%s";
         log(tag, text, edge);
     }
 

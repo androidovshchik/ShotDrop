@@ -14,7 +14,7 @@ import android.widget.Toast;
 import com.dropbox.core.android.Auth;
 import com.dropbox.core.android.AuthActivity;
 import com.shotdrop.dropbox.DropboxClientFactory;
-import com.shotdrop.dropbox.RevokeToken;
+import com.shotdrop.dropbox.RevokeTokenTask;
 import com.shotdrop.utils.Prefs;
 
 import timber.log.Timber;
@@ -109,8 +109,8 @@ public class FragmentSettings extends PreferenceFragment
                 Toast.makeText(getActivity().getApplicationContext(),
                         getString(R.string.alert_logout), Toast.LENGTH_SHORT)
                         .show();
-                new RevokeToken(DropboxClientFactory.getClient(),
-                        new RevokeToken.Callback() {
+                new RevokeTokenTask(DropboxClientFactory.getClient(),
+                        new RevokeTokenTask.Callback() {
                             @Override
                             public void onComplete() {
                                 logout();
