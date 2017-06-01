@@ -41,18 +41,15 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".ServiceMain"/>
+            android:name=".ServiceMain"
+            android:exported="false"/>
         <receiver
-            android:name=".receivers.CancelUploadReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.shotdrop.intent.action.CANCEL" />
-            </intent-filter>
-        </receiver>
-        <receiver
+            android:enabled="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:name=".receivers.DeviceBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
     </application>
