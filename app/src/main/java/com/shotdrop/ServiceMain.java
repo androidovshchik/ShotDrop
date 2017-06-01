@@ -1,5 +1,6 @@
 package com.shotdrop;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -125,7 +126,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 .setSmallIcon(primary ? R.drawable.ic_cloud_white_24dp :
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(primary ? getString(R.string.app_name) : text)
-                .setAutoCancel(false);
+                .setOngoing(true);
         Intent intent;
         int notificationId;
         if (primary) {
@@ -140,6 +141,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
             notificationId = lastNotificationId;
             intent = new Intent(getApplicationContext(), CancelUploadReceiver.class);
             intent.putExtra(CancelUploadReceiver.KEY_NOTIFICATION_ID, notificationId);
+            builder.setPriority(Notification.PRIORITY_MAX);
+            builder.setProgress(0, 0, true);
             builder.addAction(0, getString(android.R.string.cancel),
                     PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
         }
