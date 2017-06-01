@@ -17,7 +17,8 @@ import android.support.v4.app.NotificationCompat;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.UploadFileTask;
-import com.shotdrop.models.Conditions;
+import com.shotdrop.utils.ClipboardUtil;
+import com.shotdrop.utils.ConditionsUtil;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.ScreenshotObserver;
@@ -28,12 +29,10 @@ import timber.log.Timber;
 
 public class ServiceMain extends Service implements ScreenshotObserver.Callback {
 
-    public static boolean IS_RUNNING = false;
-    public static boolean IS_WORKING = false;
-
     private static final String NOTIFICATION_ACTION_CANCEL = "com.shotdrop.broadcast.cancel";
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
+    private static final String KEY_FILENAME = "filename";
     private static final int NOTIFICATION_TYPE_PRIMARY = 1;
     private static final int NOTIFICATION_TYPE_CANCEL = 2;
     private static final int NOTIFICATION_TYPE_REPEAT = 3;
@@ -43,7 +42,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     private PowerManager.WakeLock wakeLock;
 
-    private Conditions conditions;
+    private ConditionsUtil conditions;
 
     private ScreenshotObserver screenshotObserver;
 
@@ -53,20 +52,22 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            int notificationId = intent.getIntExtra(KEY_NOTIFICATION_ID, 0);
+            String filename = intent.getStringExtra(KEY_FILENAME);
             switch (intent.getAction()) {
                 case NOTIFICATION_ACTION_CANCEL:
                     Timber.d("NOTIFICATION_ACTION_CANCEL");
+                    notificationManager.cancel(notificationId);
+                    removeTask(notificationId);
                     break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
+                    notificationManager.cancel(notificationId);
+                    newUploadTask(filename);
                     break;
                 default:
                     break;
             }
-            /*int notificationId = intent.getIntExtra(KEY_NOTIFICATION_ID, 0);
-            NotificationManager notificationManager = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(notificationId);*/
         }
     };
 
@@ -83,7 +84,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         intentFilter.addAction(NOTIFICATION_ACTION_CANCEL);
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
         registerReceiver(cancelUploadReceiver, intentFilter);
-        conditions = new Conditions(getApplicationContext());
+        conditions = new ConditionsUtil(getApplicationContext());
         screenshotObserver = new ScreenshotObserver(this);
         tasks = new ArrayList<>();
     }
@@ -98,63 +99,80 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            IS_RUNNING = true;
+        conditions.log();
+        if (intent != null && conditions.checkRequired(getApplicationContext())) {
             String classname = getClass().getSimpleName();
             LogUtil.logDivider(classname, "#");
             LogUtil.logCentered(" ", classname, "Starting service...");
             LogUtil.logDivider(classname, "#");
-            runService();
+            screenshotObserver.start();
+            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                    "Служба запущена", null);
             return START_STICKY;
         } else {
-            Timber.w("onStartCommand: intent == null");
-            killService();
+            if (intent == null) {
+                Timber.w("onStartCommand: intent == null");
+            }
+            stopForeground(true);
+            stopSelf();
             return START_NOT_STICKY;
         }
     }
 
-    private void runService() {
-        IS_WORKING = true;
-        screenshotObserver.start();
-        showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
-                "Служба запущена", null);
-    }
-
     @Override
     public void onScreenshotTaken(String filename) {
-        int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename, null, null);
+        conditions.log();
+        if (!conditions.checkOptional()) {
+            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                    "Остановлен по опциональным условиям", null);
+            return;
+        }
+        showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                "К загрузке " + filename, null);
+        newUploadTask(filename);
+    }
+
+    /**
+     * New task. New notification
+     */
+    private void newUploadTask(final String filename) {
+        final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
+                "Идет загрузка...", null);
         tasks.add(new UploadFileTask(notificationId, DropboxClientFactory.getClient(),
                 new UploadFileTask.Callback() {
                     @Override
                     public void onUploadComplete(FileMetadata result) {
-                        Timber.d("onUploadComplete");
-                        notificationManager.cancel(notificationId);
+                        Timber.d("onUploadComplete: " + result.toString());
+                        removeTask(notificationId);
+                        ClipboardUtil.copy(getApplicationContext(), result.getPathDisplay());
                     }
 
                     @Override
                     public void onError(@Nullable Exception e) {
                         Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
-                        showNotification(NOTIFICATION_TYPE_REPEAT, )
+                        notificationManager.cancel(notificationId);
+                        removeTask(notificationId);
+                        showNotification(NOTIFICATION_TYPE_REPEAT, filename,
+                                "Не удалось загрузить ¯\\(ツ)/¯", null);
                     }
                 }));
         tasks.get(tasks.size() - 1).execute(filename);
     }
 
-    private void stopService() {
-        IS_WORKING = false;
-        screenshotObserver.stop();
-    }
-
-    private void killService() {
-        stopService();
-        IS_RUNNING = false;
-        stopForeground(true);
-        stopSelf();
+    private void removeTask(int notificationId) {
+        for (int i =0; i < tasks.size(); i++) {
+            if (tasks.get(i).notificationId == notificationId) {
+                tasks.get(i).cancel(true);
+                tasks.remove(i);
+                break;
+            }
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        screenshotObserver.stop();
         unregisterReceiver(cancelUploadReceiver);
         notificationManager.cancelAll();
         wakeLock.release();
@@ -165,6 +183,9 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         return null;
     }
 
+    /**
+     * @param title  For non-primary notifications is a filename
+     */
     private int showNotification(int type, @NonNull String title, @Nullable String text,
                                  @Nullable Integer prevNotificationId) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
@@ -173,13 +194,13 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 .setContentTitle(title)
                 .setOngoing(true);
         Intent intent;
-        int notificationId;
+        int newNotificationId;
         if (text != null) {
             builder.setContentText(text);
         }
         switch (type) {
             case NOTIFICATION_TYPE_PRIMARY:
-                notificationId = NOTIFICATION_PRIMARY_ID;
+                newNotificationId = NOTIFICATION_PRIMARY_ID;
                 intent = new Intent(getApplicationContext(), ActivityMain.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 builder.setContentIntent(PendingIntent.getActivity(getApplicationContext(),
@@ -187,13 +208,14 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 break;
             case NOTIFICATION_TYPE_CANCEL:
                 if (prevNotificationId != null) {
-                    notificationId = prevNotificationId;
+                    newNotificationId = prevNotificationId;
                 } else {
                     lastNotificationId++;
-                    notificationId = lastNotificationId;
+                    newNotificationId = lastNotificationId;
                 }
                 intent = new Intent(NOTIFICATION_ACTION_CANCEL);
-                intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
+                intent.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intent.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
                 builder.addAction(0, getString(android.R.string.cancel),
@@ -201,13 +223,14 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 break;
             case NOTIFICATION_TYPE_REPEAT:
                 if (prevNotificationId != null) {
-                    notificationId = prevNotificationId;
+                    newNotificationId = prevNotificationId;
                 } else {
                     lastNotificationId++;
-                    notificationId = lastNotificationId;
+                    newNotificationId = lastNotificationId;
                 }
                 intent = new Intent(NOTIFICATION_ACTION_REPEAT);
-                intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
+                intent.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intent.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.addAction(0, getString(R.string.notification_repeat),
                         PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
@@ -215,7 +238,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
             default:
                 return 0;
         }
-        notificationManager.notify(notificationId, builder.build());
-        return notificationId;
+        notificationManager.notify(newNotificationId, builder.build());
+        return newNotificationId;
     }
 }

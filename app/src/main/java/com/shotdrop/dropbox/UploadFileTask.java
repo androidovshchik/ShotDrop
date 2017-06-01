@@ -23,7 +23,7 @@ public class UploadFileTask extends AsyncTask<String, Void, FileMetadata> {
     public static final String PATH = Environment.getExternalStorageDirectory().toString() +
             "/Pictures/Screenshots/";
 
-    private final int notificationId;
+    public final int notificationId;
 
     private final DbxClientV2 dbxClient;
     private DbxUploader uploader;

@@ -8,9 +8,10 @@ import android.widget.Toast;
 public final class ClipboardUtil {
 
     public static void copy(Context context, String text) {
-        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager)
+                context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("", text);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(context, "Строка копирована", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Ссылка cкопирована", Toast.LENGTH_SHORT).show();
     }
 }
