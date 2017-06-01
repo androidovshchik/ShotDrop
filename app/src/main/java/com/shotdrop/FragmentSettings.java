@@ -58,7 +58,6 @@ public class FragmentSettings extends PreferenceFragment
             applyAccountInfo(prefs.getString(Prefs.USER_EMAIL),
                     prefs.getString(Prefs.USER_DISPLAY_NAME));
         }
-        //startService(ServiceMain.getStartIntent(getApplicationContext()));
     }
 
     @Override
@@ -88,7 +87,7 @@ public class FragmentSettings extends PreferenceFragment
                 } else {
                     boolean isServiceRunning = ServiceMain.isRunning(getActivity()
                             .getApplicationContext());
-                    if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                    if ((boolean) newValue) {
                         if (!isServiceRunning) {
                             getActivity().startService(ServiceMain.getStartIntent(getActivity()
                                     .getApplicationContext()));

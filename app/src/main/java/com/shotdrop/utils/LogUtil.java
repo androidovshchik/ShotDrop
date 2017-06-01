@@ -8,7 +8,7 @@ public final class LogUtil {
 
     private static int STYLED_LOG_LENGTH = 48;
 
-    private static Timber.Tree tag(String tag) {
+    public static Timber.Tree tag(String tag) {
         return Timber.tag(tag);
     }
 

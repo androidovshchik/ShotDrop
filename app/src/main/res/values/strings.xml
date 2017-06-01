@@ -8,10 +8,10 @@
     <string name="prompt.permissions">Доступны не все разрешения, поробовать еще раз?</string>
     <string name="prompt.settings">Для работы приложения необходимо вручную дать разрешения</string>
     <string name="prompt.require_account">Требуется аккаунт Dropbox</string>
-    <string name="prompt.require_app">Требуется включить приложение</string>
+    <string name="prompt.require_app">Требуется запустить службу</string>
 
     <string name="settings.dropbox_account">Аккаунт Dropbox</string>
-    <string name="settings.turn_on">Включить приложение</string>
+    <string name="settings.turn_on">Запуск службы</string>
     <string name="settings.only_wifi">Загрузка по Wifi</string>
     <string name="settings.after_reboot">Автозапуск</string>
 
