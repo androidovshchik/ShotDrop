@@ -111,7 +111,8 @@ public class FragmentSettings extends PreferenceFragment
                 Toast.makeText(getActivity().getApplicationContext(),
                         getString(R.string.alert_logout), Toast.LENGTH_SHORT)
                         .show();
-                new RevokeTokenTask(DropboxClientFactory.getClient(),
+                new RevokeTokenTask(DropboxClientFactory.getClient(getActivity()
+                        .getApplicationContext()),
                         new RevokeTokenTask.Callback() {
                             @Override
                             public void onComplete() {

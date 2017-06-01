@@ -82,10 +82,10 @@ public abstract class DropboxPreferenceActivity extends PreferenceActivity {
             String accessToken = Auth.getOAuth2Token();
             if (accessToken != null) {
                 prefs.putString(Prefs.ACCESS_TOKEN, accessToken);
-                initAndLoadData(accessToken);
+                loadData();
             }
         } else {
-            initAndLoadData(prefs.getString(Prefs.ACCESS_TOKEN));
+            loadData();
         }
 
         String uid = Auth.getUid();
@@ -125,11 +125,6 @@ public abstract class DropboxPreferenceActivity extends PreferenceActivity {
     protected void onDestroy() {
         super.onDestroy();
         getDelegate().onDestroy();
-    }
-
-    private void initAndLoadData(String accessToken) {
-        DropboxClientFactory.init(accessToken);
-        loadData();
     }
 
     protected abstract void loadData();

@@ -100,7 +100,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         conditions.log();
-        if (intent != null && conditions.checkRequired(getApplicationContext())) {
+        if (conditions.checkRequired(getApplicationContext())) {
             String classname = getClass().getSimpleName();
             LogUtil.logDivider(classname, "#");
             LogUtil.logCentered(" ", classname, "Starting service...");
@@ -108,15 +108,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
             screenshotObserver.start();
             showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                     "Служба запущена", null);
-            return START_STICKY;
-        } else {
-            if (intent == null) {
-                Timber.w("onStartCommand: intent == null");
-            }
-            stopForeground(true);
-            stopSelf();
-            return START_NOT_STICKY;
         }
+        return START_STICKY;
     }
 
     @Override
@@ -138,24 +131,25 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
     private void newUploadTask(final String filename) {
         final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
-        tasks.add(new UploadFileTask(notificationId, DropboxClientFactory.getClient(),
-                new UploadFileTask.Callback() {
-                    @Override
-                    public void onUploadComplete(FileMetadata result) {
-                        Timber.d("onUploadComplete: " + result.toString());
-                        removeTask(notificationId);
-                        ClipboardUtil.copy(getApplicationContext(), result.getPathDisplay());
-                    }
+        tasks.add(new UploadFileTask(notificationId, DropboxClientFactory
+                .getClient(getApplicationContext()), new UploadFileTask.Callback() {
+            @Override
+            public void onUploadComplete(FileMetadata result) {
+                Timber.d("onUploadComplete: " + result.toString());
+                notificationManager.cancel(notificationId);
+                removeTask(notificationId);
+                ClipboardUtil.copy(getApplicationContext(), result.getPathDisplay());
+            }
 
-                    @Override
-                    public void onError(@Nullable Exception e) {
-                        Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
-                        notificationManager.cancel(notificationId);
-                        removeTask(notificationId);
-                        showNotification(NOTIFICATION_TYPE_REPEAT, filename,
-                                "Не удалось загрузить ¯\\(ツ)/¯", null);
-                    }
-                }));
+            @Override
+            public void onError(@Nullable Exception e) {
+                Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
+                notificationManager.cancel(notificationId);
+                removeTask(notificationId);
+                showNotification(NOTIFICATION_TYPE_REPEAT, filename,
+                        "Не удалось загрузить ¯\\(ツ)/¯", null);
+            }
+        }));
         tasks.get(tasks.size() - 1).execute(filename);
     }
 
@@ -191,8 +185,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(type == NOTIFICATION_TYPE_PRIMARY ? R.drawable.ic_dropbox_white :
                         R.drawable.ic_cloud_upload_white_24dp)
-                .setContentTitle(title)
-                .setOngoing(true);
+                .setContentTitle(title);
         Intent intent;
         int newNotificationId;
         if (text != null) {

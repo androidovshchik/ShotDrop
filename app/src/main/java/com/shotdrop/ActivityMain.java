@@ -66,7 +66,7 @@ public class ActivityMain extends DropboxPreferenceActivity implements
                     Toast.LENGTH_SHORT)
                     .show();
         }
-        new GetCurrentAccountTask(DropboxClientFactory.getClient(),
+        new GetCurrentAccountTask(DropboxClientFactory.getClient(getApplicationContext()),
                 new GetCurrentAccountTask.Callback() {
                     @Override
                     public void onComplete(FullAccount result) {

@@ -1,8 +1,11 @@
 package com.shotdrop.dropbox;
 
+import android.content.Context;
+
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.http.OkHttp3Requestor;
 import com.dropbox.core.v2.DbxClientV2;
+import com.shotdrop.utils.Prefs;
 
 /**
  * Singleton instance of {@link DbxClientV2} and friends
@@ -20,9 +23,14 @@ public class DropboxClientFactory {
         }
     }
 
-    public static DbxClientV2 getClient() {
+    public static DbxClientV2 getClient(Context context) {
         if (dbxClient == null) {
-            throw new IllegalStateException("Client not initialized.");
+            Prefs prefs = new Prefs(context);
+            if (prefs.has(Prefs.ACCESS_TOKEN)) {
+                init(prefs.getString(Prefs.ACCESS_TOKEN));
+            } else {
+                throw new IllegalStateException("Client not initialized.");
+            }
         }
         return dbxClient;
     }
