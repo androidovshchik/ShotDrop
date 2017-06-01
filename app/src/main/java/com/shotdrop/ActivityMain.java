@@ -29,11 +29,14 @@ public class ActivityMain extends DropboxPreferenceActivity implements
 
     private FragmentSettings settings;
 
+    private Prefs prefs;
+
     private boolean needShowWindows = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefs = new Prefs(getApplicationContext());
         settings = new FragmentSettings();
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, settings)
@@ -41,12 +44,22 @@ public class ActivityMain extends DropboxPreferenceActivity implements
         if (!PermissionsUtil.hasAllPermissions(getApplicationContext())) {
             ActivityCompat.requestPermissions(this, PermissionsUtil.ALL_PERMISSIONS,
                     REQUEST_PERMISSIONS);
+        } else {
+            boolean isServiceRunning = ServiceMain.isRunning(getApplicationContext());
+            if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                if (!isServiceRunning) {
+                    startService(ServiceMain.getStartIntent(getApplicationContext()));
+                }
+            } else {
+                if (isServiceRunning) {
+                    stopService(ServiceMain.getStartIntent(getApplicationContext()));
+                }
+            }
         }
     }
 
     @Override
     protected void loadData() {
-        final Prefs prefs = new Prefs(getApplicationContext());
         if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && (!prefs.has(Prefs.USER_EMAIL) ||
                 !prefs.has(Prefs.USER_DISPLAY_NAME))) {
             Toast.makeText(getApplicationContext(), getString(R.string.alert_login),

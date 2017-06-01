@@ -86,6 +86,19 @@ public class FragmentSettings extends PreferenceFragment
                     alertDialog.show();
                     return false;
                 } else {
+                    boolean isServiceRunning = ServiceMain.isRunning(getActivity()
+                            .getApplicationContext());
+                    if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                        if (!isServiceRunning) {
+                            getActivity().startService(ServiceMain.getStartIntent(getActivity()
+                                    .getApplicationContext()));
+                        }
+                    } else {
+                        if (isServiceRunning) {
+                            getActivity().stopService(ServiceMain.getStartIntent(getActivity()
+                                    .getApplicationContext()));
+                        }
+                    }
                     return true;
                 }
             case Prefs.ENABLE_START_AFTER_REBOOT: case Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI:

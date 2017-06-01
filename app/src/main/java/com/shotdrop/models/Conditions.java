@@ -11,6 +11,8 @@ public class Conditions {
 
     private Prefs prefs;
 
+    private WifiManager wifiManager;
+
     private boolean hasAllPermissions;
 
     private boolean hasDropboxAccount;
@@ -20,18 +22,23 @@ public class Conditions {
     private boolean onlyWifiConnection;
     private boolean hasWifiConnection;
 
+    @SuppressWarnings("all")
     public Conditions(Context context) {
         prefs = new Prefs(context);
+        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
-    @SuppressWarnings("all")
-    public boolean checkAll(Context context) {
+    public boolean checkRequired(Context context) {
         hasAllPermissions = PermissionsUtil.hasAllPermissions(context);
         hasDropboxAccount = onlyWhen(Prefs.ENABLE_DROPBOX_ACCOUNT);
         hasEnabledApplication = onlyWhen(Prefs.ENABLE_APPLICATION);
+        return hasAllPermissions && hasDropboxAccount && hasEnabledApplication;
+    }
+
+    public boolean checkOptional() {
         onlyWifiConnection = onlyWhen(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI);
-        hasWifiConnection = ((WifiManager) context.getSystemService(Context.WIFI_SERVICE))
-                .isWifiEnabled();
+        hasWifiConnection = wifiManager.isWifiEnabled();
+        return hasWifiConnection || !onlyWifiConnection;
     }
 
     private boolean onlyWhen(String key) {
@@ -40,15 +47,12 @@ public class Conditions {
 
     public void log() {
         String classname = getClass().getSimpleName();
-        LogUtil.logDivider(classname, "#");
-        LogUtil.logCentered(" ", classname, "Start service...");
-        LogUtil.logDivider(classname, "#");
-        return "Conditions{" +
-                "hasAllPermissions=" + hasAllPermissions +
-                ", hasDropboxAccount=" + hasDropboxAccount +
-                ", hasEnabledApplication=" + hasEnabledApplication +
-                ", onlyWifiConnection=" + onlyWifiConnection +
-                ", hasWifiConnection=" + hasWifiConnection +
-                '}';
+        LogUtil.logDivider(classname, "*");
+        LogUtil.logCentered("*", classname, "hasAllPermissions: " + hasAllPermissions);
+        LogUtil.logCentered("*", classname, "hasDropboxAccount: " + hasDropboxAccount);
+        LogUtil.logCentered("*", classname, "hasEnabledApplication: " + hasEnabledApplication);
+        LogUtil.logCentered("*", classname, "onlyWifiConnection: " + onlyWifiConnection);
+        LogUtil.logCentered("*", classname, "hasWifiConnection: " + hasWifiConnection);
+        LogUtil.logDivider(classname, "*");
     }
 }
