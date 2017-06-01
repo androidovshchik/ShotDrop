@@ -17,8 +17,8 @@ public final class ScreenshotObserver extends FileObserver {
         void onScreenshotTaken(String filename);
     }
 
-    public ScreenshotObserver(@NonNull Callback callback) {
-        super(UploadFileTask.PATH, FileObserver.CLOSE_WRITE);
+    public ScreenshotObserver(@NonNull String path, @NonNull Callback callback) {
+        super(path, FileObserver.CLOSE_WRITE);
         this.callback = callback;
     }
 

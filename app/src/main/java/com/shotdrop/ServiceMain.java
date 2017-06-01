@@ -21,6 +21,7 @@ import com.shotdrop.utils.ClipboardUtil;
 import com.shotdrop.utils.ConditionsUtil;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
+import com.shotdrop.utils.Prefs;
 import com.shotdrop.utils.ScreenshotObserver;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
     private ConditionsUtil conditions;
 
     private ScreenshotObserver screenshotObserver;
+
+    private Prefs prefs;
 
     private ArrayList<UploadFileTask> tasks;
 
@@ -87,7 +90,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
-        screenshotObserver = new ScreenshotObserver(this);
+        prefs = new Prefs(getApplicationContext());
+        screenshotObserver = new ScreenshotObserver(prefs.getString(Prefs.SCREENSHOTS_PATH), this);
         tasks = new ArrayList<>();
     }
 
@@ -156,7 +160,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                         error, null);
             }
         }));
-        tasks.get(tasks.size() - 1).execute(filename);
+        tasks.get(tasks.size() - 1).execute(prefs.getString(Prefs.SCREENSHOTS_PATH), filename);
     }
 
     private void removeTask(int notificationId) {
