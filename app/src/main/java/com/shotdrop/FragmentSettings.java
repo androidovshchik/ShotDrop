@@ -100,16 +100,6 @@ public class FragmentSettings extends PreferenceFragment
                     }
                     return true;
                 }
-            case Prefs.ENABLE_START_AFTER_REBOOT: case Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI:
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,
-                        getString(android.R.string.ok), this);
-                if (!prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
-                    alertDialog.setMessage(getString(R.string.prompt_require_app));
-                    alertDialog.show();
-                    return false;
-                } else {
-                    return true;
-                }
         }
         return true;
     }

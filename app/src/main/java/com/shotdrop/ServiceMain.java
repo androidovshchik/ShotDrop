@@ -5,16 +5,21 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
+import com.dropbox.core.v2.files.FileMetadata;
+import com.shotdrop.dropbox.DropboxClientFactory;
+import com.shotdrop.dropbox.UploadFileTask;
 import com.shotdrop.models.Conditions;
 import com.shotdrop.receivers.CancelUploadReceiver;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.ScreenshotObserver;
+
+import timber.log.Timber;
 
 public class ServiceMain extends Service implements ScreenshotObserver.Callback {
 
@@ -72,12 +77,23 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         IS_WORKING = true;
         screenshotObserver.start();
         showNotification(true, "Служба запущена");
-        showNotification(false, "Filename1");
     }
 
     @Override
-    public void onScreenshotTaken(Uri uri) {
+    public void onScreenshotTaken(String filename) {
+        final int notificationId = showNotification(false, filename);
+        new UploadFileTask(DropboxClientFactory.getClient(), new UploadFileTask.Callback() {
+            @Override
+            public void onUploadComplete(FileMetadata result) {
+                Timber.d("onUploadComplete");
+                notificationManager.cancel(notificationId);
+            }
 
+            @Override
+            public void onError(@Nullable Exception e) {
+                Timber.e(e == null ? "UploadFileTask: onError" : e.getLocalizedMessage());
+            }
+        }).execute(filename);
     }
 
     private void stopService() {
@@ -104,14 +120,14 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         return null;
     }
 
-    private void showNotification(boolean primary, String text) {
+    private int showNotification(boolean primary, String text) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(primary ? R.drawable.ic_cloud_white_24dp :
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(primary ? getString(R.string.app_name) : text)
                 .setAutoCancel(false);
-        int notificationId;
         Intent intent;
+        int notificationId;
         if (primary) {
             notificationId = NOTIFICATION_PRIMARY_ID;
             intent = new Intent(getApplicationContext(), ActivityMain.class);
@@ -128,5 +144,6 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                     PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
         }
         notificationManager.notify(notificationId, builder.build());
+        return notificationId;
     }
 }
