@@ -155,9 +155,9 @@ public class ActivityMain extends DropboxPreferenceActivity implements
     @Override
     public void onDestroy() {
         super.onDestroy();
-        sendLogcatMail();
     }
 
+    @SuppressWarnings("unused")
     private void sendLogcatMail() {
         StringBuilder logcat = new StringBuilder();
         try {

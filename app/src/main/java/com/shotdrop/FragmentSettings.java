@@ -15,6 +15,7 @@ import com.dropbox.core.android.Auth;
 import com.dropbox.core.android.AuthActivity;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.RevokeTokenTask;
+import com.shotdrop.dropbox.UploadFileTask;
 import com.shotdrop.utils.Prefs;
 
 import timber.log.Timber;
@@ -51,6 +52,10 @@ public class FragmentSettings extends PreferenceFragment
         enableStartAfterReboot = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_START_AFTER_REBOOT);
         enableStartAfterReboot.setOnPreferenceChangeListener(this);
+
+        Preference screenshotsPath = getPreferenceManager()
+                .findPreference(Prefs.SCREENSHOTS_PATH);
+        screenshotsPath.setSummary(UploadFileTask.PATH);
 
         userInfo = (PreferenceCategory) getPreferenceManager().findPreference("userInfo");
         if (prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && prefs.has(Prefs.USER_EMAIL) &&

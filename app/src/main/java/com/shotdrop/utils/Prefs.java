@@ -25,6 +25,8 @@ public final class Prefs {
     public static final String ENABLE_UPLOAD_ONLY_BY_WIFI = "enableUploadOnlyByWifi";
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
 
+    public static final String SCREENSHOTS_PATH = "screenshotsPath";
+
     /* Util strings */
     private static final String EMPTY = "";
 
