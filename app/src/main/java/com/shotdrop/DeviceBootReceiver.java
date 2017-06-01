@@ -17,7 +17,8 @@ public class DeviceBootReceiver extends BroadcastReceiver {
         switch(intent.getAction()) {
             case ACTION:
                 boolean isServiceRunning = ServiceMain.isRunning(context);
-                if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                if (prefs.getBoolean(Prefs.ENABLE_APPLICATION) &&
+                        prefs.getBoolean(Prefs.ENABLE_START_AFTER_REBOOT)) {
                     if (!isServiceRunning) {
                         context.startService(ServiceMain.getStartIntent(context));
                     }
