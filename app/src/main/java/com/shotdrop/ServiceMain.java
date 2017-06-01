@@ -59,6 +59,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                     Timber.d("NOTIFICATION_ACTION_CANCEL");
                     notificationManager.cancel(notificationId);
                     removeTask(notificationId);
+                    showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                            "Отменен " + filename, null);
                     break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
@@ -99,7 +101,6 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        conditions.log();
         if (conditions.checkRequired(getApplicationContext())) {
             String classname = getClass().getSimpleName();
             LogUtil.logDivider(classname, "#");
@@ -114,7 +115,6 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     @Override
     public void onScreenshotTaken(String filename) {
-        conditions.log();
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
@@ -212,7 +212,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
                 builder.addAction(0, getString(android.R.string.cancel),
-                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
+                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                                PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             case NOTIFICATION_TYPE_REPEAT:
                 if (prevNotificationId != null) {
@@ -226,7 +227,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                 intent.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.addAction(0, getString(R.string.notification_repeat),
-                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0));
+                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                                PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             default:
                 return 0;
