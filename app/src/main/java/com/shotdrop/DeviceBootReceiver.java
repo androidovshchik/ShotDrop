@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.shotdrop.ServiceMain;
 import com.shotdrop.utils.Prefs;
 
 public class DeviceBootReceiver extends BroadcastReceiver {
