@@ -28,12 +28,15 @@ public class ConditionsUtil {
         hasAllPermissions = PermissionsUtil.hasAllPermissions(context);
         hasDropboxAccount = onlyWhen(Prefs.ENABLE_DROPBOX_ACCOUNT);
         hasEnabledApplication = onlyWhen(Prefs.ENABLE_APPLICATION);
+        // needed to init boolean vars
+        checkOptional();
         return hasAllPermissions && hasDropboxAccount && hasEnabledApplication;
     }
 
     public boolean checkOptional() {
         onlyWifiConnection = onlyWhen(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI);
         hasWifiConnection = wifiManager.isWifiEnabled();
+        log();
         return hasWifiConnection || !onlyWifiConnection;
     }
 
@@ -41,7 +44,7 @@ public class ConditionsUtil {
         return prefs.getBoolean(key);
     }
 
-    public void log() {
+    private void log() {
         String classname = getClass().getSimpleName();
         LogUtil.logDivider(classname, "*");
         LogUtil.logCentered("*", classname, "hasAllPermissions: " + hasAllPermissions);
