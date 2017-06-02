@@ -1,7 +1,6 @@
 package com.shotdrop.dropbox;
 
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 
 import com.dropbox.core.DbxException;
@@ -19,9 +18,6 @@ import java.io.InputStream;
  * Async task to upload a file to a directory
  */
 public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> {
-
-    public static final String PATH = Environment.getExternalStoragePublicDirectory(Environment
-            .DIRECTORY_PICTURES) + "/Screenshots/";
 
     public final int notificationId;
 

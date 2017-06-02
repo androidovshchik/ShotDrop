@@ -2,6 +2,7 @@ package com.shotdrop.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public final class Prefs {
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
+    public static final String LAST_UPLOAD_FILENAME = "lastUploadFilename";
     public static final String DEBUG_MODE = "debugMode";
 
     private static final String OBSERVER_CLASS = "observerClass";
@@ -100,6 +102,11 @@ public final class Prefs {
         remove(USER_ID);
         remove(USER_EMAIL);
         remove(USER_DISPLAY_NAME);
+    }
+
+    public String getScreenshotsPath() {
+        return getString(SCREENSHOTS_PATH, Environment.getExternalStoragePublicDirectory(Environment
+                .DIRECTORY_PICTURES) + "/Screenshots/");
     }
 
     public boolean isClassFileObserver() {
