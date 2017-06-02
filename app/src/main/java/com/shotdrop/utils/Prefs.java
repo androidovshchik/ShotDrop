@@ -108,13 +108,11 @@ public final class Prefs {
     }
 
     public boolean isClassContentObserver() {
-        return getString(OBSERVER_CLASS).equals("2") || !isClassFileObserver() &&
-                !isClassScheduledExecutorService();
+        return getString(OBSERVER_CLASS).equals("2");
     }
 
     public boolean isClassScheduledExecutorService() {
-        return getString(OBSERVER_CLASS).equals("3") || !isClassFileObserver() &&
-                !isClassContentObserver();
+        return getString(OBSERVER_CLASS).equals("3");
     }
 
     /* Utils functions */

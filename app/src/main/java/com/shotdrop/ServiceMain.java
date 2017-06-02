@@ -25,6 +25,10 @@ import com.shotdrop.utils.Prefs;
 import com.shotdrop.utils.ScreenshotObserver;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
@@ -45,7 +49,8 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     private ConditionsUtil conditions;
 
-    private ScreenshotObserver screenshotObserver;
+    private ScreenshotObserver fileObserver;
+    private ScheduledFuture<?> scheduledFuture;
 
     private Prefs prefs;
 
@@ -90,9 +95,11 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
-        prefs = new Prefs(getApplicationContext());
-        screenshotObserver = new ScreenshotObserver(prefs.getString(Prefs.SCREENSHOTS_PATH), this);
         tasks = new ArrayList<>();
+        prefs = new Prefs(getApplicationContext());
+        if (prefs.isClassFileObserver()) {
+            fileObserver = new ScreenshotObserver(prefs.getString(Prefs.SCREENSHOTS_PATH), this);
+        }
     }
 
     public static Intent getStartIntent(Context context) {
@@ -110,7 +117,19 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
             LogUtil.logDivider(classname, "#");
             LogUtil.logCentered(" ", classname, "Starting service...");
             LogUtil.logDivider(classname, "#");
-            screenshotObserver.start();
+            if (prefs.isClassFileObserver()) {
+                fileObserver.start();
+            }
+            if (prefs.isClassScheduledExecutorService()) {
+                ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
+                scheduledFuture = timer.scheduleWithFixedDelay(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Timber.d("--RUN--");
+                    }
+                }, 0, 2, TimeUnit.SECONDS);
+            }
             showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                     "Служба запущена", null);
         }
@@ -176,7 +195,12 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        screenshotObserver.stop();
+        if (prefs.isClassFileObserver() && fileObserver != null) {
+            fileObserver.stop();
+        }
+        if (prefs.isClassScheduledExecutorService() && scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+        }
         unregisterReceiver(cancelUploadReceiver);
         notificationManager.cancelAll();
         wakeLock.release();
