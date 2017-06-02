@@ -26,8 +26,9 @@ public final class Prefs {
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
-    public static final String OBSERVER_CLASS = "observerClass";
     public static final String DEBUG_MODE = "debugMode";
+
+    private static final String OBSERVER_CLASS = "observerClass";
 
     /* Util strings */
     private static final String EMPTY = "";
@@ -101,10 +102,25 @@ public final class Prefs {
         remove(USER_DISPLAY_NAME);
     }
 
+    public boolean isClassFileObserver() {
+        return getString(OBSERVER_CLASS).equals("1") || !isClassContentObserver() &&
+                !isClassScheduledExecutorService();
+    }
+
+    public boolean isClassContentObserver() {
+        return getString(OBSERVER_CLASS).equals("2") || !isClassFileObserver() &&
+                !isClassScheduledExecutorService();
+    }
+
+    public boolean isClassScheduledExecutorService() {
+        return getString(OBSERVER_CLASS).equals("3") || !isClassFileObserver() &&
+                !isClassContentObserver();
+    }
+
     /* Utils functions */
 
     @SuppressWarnings("unused")
-    public <T> String toString(T value) {
+    private  <T> String toString(T value) {
         return String.class.isInstance(value)? ((String) value).trim() : String.valueOf(value);
     }
 

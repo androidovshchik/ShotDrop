@@ -24,9 +24,9 @@ public final class ScreenshotObserver extends FileObserver {
 
     @Override
     public void onEvent(int event, String filename) {
-        Timber.i("Event: %d; Path: %s", event, filename);
         if (filename != null && event == FileObserver.CLOSE_WRITE && (lastFilename == null ||
                 !filename.equals(lastFilename))) {
+            Timber.d("Event: %d; Path: %s", event, filename);
             lastFilename = filename;
             callback.onScreenshotTaken(lastFilename);
         }
