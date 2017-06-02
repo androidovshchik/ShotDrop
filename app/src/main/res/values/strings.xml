@@ -16,6 +16,7 @@
     <string name="settings.turn_on">Запуск службы</string>
     <string name="settings.only_wifi">Загрузка по Wifi</string>
     <string name="settings.after_reboot">Автозапуск</string>
+    <string name="settings.debug_mode">Режим разработчика</string>
 
     <string name="settings.user_title">Пользователь</string>
     <string name="settings.user_info">%1$s &lt;%2$s&gt;</string>

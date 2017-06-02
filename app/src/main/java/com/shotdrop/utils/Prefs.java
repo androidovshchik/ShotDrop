@@ -26,6 +26,8 @@ public final class Prefs {
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
+    public static final String OBSERVER_CLASS = "observerClass";
+    public static final String DEBUG_MODE = "debugMode";
 
     /* Util strings */
     private static final String EMPTY = "";
