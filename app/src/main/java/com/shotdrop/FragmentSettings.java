@@ -16,7 +16,6 @@ import com.dropbox.core.android.Auth;
 import com.dropbox.core.android.AuthActivity;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.RevokeTokenTask;
-import com.shotdrop.dropbox.UploadFileTask;
 import com.shotdrop.utils.Prefs;
 
 import timber.log.Timber;
@@ -55,14 +54,16 @@ public class FragmentSettings extends PreferenceFragment
         enableStartAfterReboot.setOnPreferenceChangeListener(this);
 
         if (!prefs.has(Prefs.SCREENSHOTS_PATH)) {
-            prefs.putString(Prefs.SCREENSHOTS_PATH, UploadFileTask.PATH);
+            prefs.putString(Prefs.SCREENSHOTS_PATH, prefs.getScreenshotsPath());
         }
-        String path = prefs.getString(Prefs.SCREENSHOTS_PATH, UploadFileTask.PATH);
         EditTextPreference screenshotsPath = (EditTextPreference) getPreferenceManager()
                 .findPreference(Prefs.SCREENSHOTS_PATH);
-        screenshotsPath.setDefaultValue(UploadFileTask.PATH);
-        screenshotsPath.setText(path);
+        screenshotsPath.setDefaultValue(prefs.getScreenshotsPath());
+        screenshotsPath.setText(prefs.getScreenshotsPath());
         screenshotsPath.setOnPreferenceChangeListener(this);
+
+        Preference observerClass = getPreferenceManager().findPreference(Prefs.OBSERVER_CLASS);
+        observerClass.setOnPreferenceChangeListener(this);
 
         userInfo = (PreferenceCategory) getPreferenceManager().findPreference("userInfo");
         if (prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT) && prefs.has(Prefs.USER_EMAIL) &&
@@ -76,6 +77,8 @@ public class FragmentSettings extends PreferenceFragment
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
                 .create();
+        boolean isServiceRunning = ServiceMain.isRunning(getActivity()
+                .getApplicationContext());
         switch (preference.getKey()) {
             case Prefs.ENABLE_DROPBOX_ACCOUNT:
                 alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,
@@ -89,16 +92,14 @@ public class FragmentSettings extends PreferenceFragment
                     alertDialog.show();
                 }
                 return false;
-            case Prefs.ENABLE_APPLICATION:
+            case Prefs.ENABLE_APPLICATION: case Prefs.ENABLE_START_AFTER_REBOOT:
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL,
                         getString(android.R.string.ok), this);
                 if (!prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT)) {
                     alertDialog.setMessage(getString(R.string.prompt_require_account));
                     alertDialog.show();
                     return false;
-                } else {
-                    boolean isServiceRunning = ServiceMain.isRunning(getActivity()
-                            .getApplicationContext());
+                } else if (preference.getKey().equals(Prefs.ENABLE_APPLICATION)) {
                     if ((boolean) newValue) {
                         if (!isServiceRunning) {
                             getActivity().startService(ServiceMain.getStartIntent(getActivity()
@@ -110,11 +111,16 @@ public class FragmentSettings extends PreferenceFragment
                                     .getApplicationContext()));
                         }
                     }
-                    return true;
                 }
-            case Prefs.SCREENSHOTS_PATH:
+                return true;
+            case Prefs.SCREENSHOTS_PATH: case Prefs.OBSERVER_CLASS:
+                if (isServiceRunning) {
+                    getActivity().stopService(ServiceMain.getStartIntent(getActivity()
+                            .getApplicationContext()));
+                }
+                applyMainSwitches();
                 Toast.makeText(getActivity().getApplicationContext(),
-                        getString(R.string.alert_restart), Toast.LENGTH_SHORT)
+                        getString(R.string.alert_stop), Toast.LENGTH_SHORT)
                         .show();
                 return true;
         }
@@ -154,11 +160,15 @@ public class FragmentSettings extends PreferenceFragment
         applyAccountInfo(null, null);
     }
 
-    public void applyAccountInfo(@Nullable String email, @Nullable String displayName) {
+    public void applyMainSwitches() {
         enableDropboxAccount.setChecked(prefs.getBoolean(Prefs.ENABLE_DROPBOX_ACCOUNT));
         enableApplication.setChecked(prefs.getBoolean(Prefs.ENABLE_APPLICATION));
         enableStartAfterReboot.setChecked(prefs.getBoolean(Prefs.ENABLE_START_AFTER_REBOOT));
         enableUploadOnlyByWifi.setChecked(prefs.getBoolean(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI));
+    }
+
+    public void applyAccountInfo(@Nullable String email, @Nullable String displayName) {
+        applyMainSwitches();
         if (email == null || displayName == null) {
             userInfo.setTitle("");
             userInfo.setSummary("");

@@ -30,7 +30,7 @@ public final class Prefs {
     public static final String LAST_UPLOAD_FILENAME = "lastUploadFilename";
     public static final String DEBUG_MODE = "debugMode";
 
-    private static final String OBSERVER_CLASS = "observerClass";
+    public static final String OBSERVER_CLASS = "observerClass";
 
     /* Util strings */
     private static final String EMPTY = "";
