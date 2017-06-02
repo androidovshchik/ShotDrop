@@ -118,10 +118,13 @@ public class FragmentSettings extends PreferenceFragment
                     getActivity().stopService(ServiceMain.getStartIntent(getActivity()
                             .getApplicationContext()));
                 }
-                applyMainSwitches();
-                Toast.makeText(getActivity().getApplicationContext(),
-                        getString(R.string.alert_stop), Toast.LENGTH_SHORT)
-                        .show();
+                if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                    prefs.putBoolean(Prefs.ENABLE_APPLICATION, false);
+                    applyMainSwitches();
+                    Toast.makeText(getActivity().getApplicationContext(),
+                            getString(R.string.alert_stop), Toast.LENGTH_SHORT)
+                            .show();
+                }
                 return true;
         }
         return true;

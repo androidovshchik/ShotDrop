@@ -28,18 +28,29 @@ public class ScheduledExecutorServiceClass implements Runnable {
     @Override
     public void run() {
         List<File> files = Arrays.asList(screenshotsFolder.listFiles());
-        Timber.d("ScheduledExecutorServiceClass: Screenshots count: " + files.size());
+        int count = files.size();
+        Timber.d("ScheduledExecutorServiceClass: Screenshots count: " + count);
+        if (count <= 0) {
+            return;
+        }
         Collections.sort(files, new Comparator<File>() {
             @Override
             public int compare(File f1, File f2) {
                 return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
             }
         });
-        for (File file : files) {
-            Timber.d("LastModified: " + file.lastModified());
-        }
-        /*if (lastFilename == null || lastModifiedTime == null) {
+        if (lastFilename == null || lastModifiedTime == null) {
+            lastFilename = files.get(count - 1).getName();
+            lastModifiedTime = files.get(count - 1).lastModified();
+            callback.onScreenshotTaken(lastFilename);
         } else {
-        }*/
+            for (int i = 0; i < count; i++) {
+                if (files.get(i).lastModified() > lastModifiedTime) {
+                    lastFilename = files.get(i).getName();
+                    lastModifiedTime = files.get(i).lastModified();
+                    callback.onScreenshotTaken(lastFilename);
+                }
+            }
+        }
     }
 }
