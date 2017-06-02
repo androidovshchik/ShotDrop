@@ -2,12 +2,10 @@
 <resources>
     <string-array name="classesArray">
         <item>FileObserver</item>
-        <item>ContentObserver</item>
         <item>ScheduledExecutorService</item>
     </string-array>
     <string-array name="classesValues">
         <item>1</item>
         <item>2</item>
-        <item>3</item>
     </string-array>
 </resources>
