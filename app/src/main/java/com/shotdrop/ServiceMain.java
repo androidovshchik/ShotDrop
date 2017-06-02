@@ -126,7 +126,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
                 scheduledFuture = timer.scheduleWithFixedDelay(
                         new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(), this),
-                        0, 2, TimeUnit.SECONDS);
+                        0, 1, TimeUnit.SECONDS);
             }
             showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                     "Служба запущена", null);
