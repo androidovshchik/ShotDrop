@@ -3,8 +3,6 @@ package com.shotdrop.utils;
 import android.os.FileObserver;
 import android.support.annotation.NonNull;
 
-import com.shotdrop.dropbox.UploadFileTask;
-
 import timber.log.Timber;
 
 public final class ScreenshotObserver extends FileObserver {
