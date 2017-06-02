@@ -17,12 +17,14 @@ import android.support.v4.app.NotificationCompat;
 import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.UploadFileTask;
+import com.shotdrop.observers.ScheduledExecutorServiceClass;
+import com.shotdrop.observers.ScreenshotCallback;
 import com.shotdrop.utils.ClipboardUtil;
 import com.shotdrop.utils.ConditionsUtil;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.Prefs;
-import com.shotdrop.utils.ScreenshotObserver;
+import com.shotdrop.observers.FileObserverClass;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
@@ -32,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
-public class ServiceMain extends Service implements ScreenshotObserver.Callback {
+public class ServiceMain extends Service implements ScreenshotCallback {
 
     private static final String NOTIFICATION_ACTION_CANCEL = "com.shotdrop.broadcast.cancel";
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
@@ -49,7 +51,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
 
     private ConditionsUtil conditions;
 
-    private ScreenshotObserver fileObserver;
+    private FileObserverClass fileObserver;
     private ScheduledFuture<?> scheduledFuture;
 
     private Prefs prefs;
@@ -98,7 +100,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
         tasks = new ArrayList<>();
         prefs = new Prefs(getApplicationContext());
         if (prefs.isClassFileObserver()) {
-            fileObserver = new ScreenshotObserver(prefs.getString(Prefs.SCREENSHOTS_PATH), this);
+            fileObserver = new FileObserverClass(prefs.getScreenshotsPath(), this);
         }
     }
 
@@ -122,13 +124,9 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
             }
             if (prefs.isClassScheduledExecutorService()) {
                 ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
-                scheduledFuture = timer.scheduleWithFixedDelay(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        Timber.d("--RUN--");
-                    }
-                }, 0, 2, TimeUnit.SECONDS);
+                scheduledFuture = timer.scheduleWithFixedDelay(
+                        new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(), this),
+                        0, 2, TimeUnit.SECONDS);
             }
             showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
                     "Служба запущена", null);
@@ -179,7 +177,7 @@ public class ServiceMain extends Service implements ScreenshotObserver.Callback 
                         error, null);
             }
         }));
-        tasks.get(tasks.size() - 1).execute(prefs.getString(Prefs.SCREENSHOTS_PATH), filename);
+        tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
     }
 
     private void removeTask(int notificationId) {
