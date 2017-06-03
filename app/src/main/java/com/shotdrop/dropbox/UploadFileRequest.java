@@ -38,9 +38,9 @@ public class UploadFileRequest implements okhttp3.Callback {
 
     public interface Callback {
 
-        void onSuccess(int notificationId, String url);
+        void onSuccess(int notificationId, String filename, String url);
 
-        void onError(int notificationId, String message);
+        void onError(int notificationId, String filename, String message);
     }
 
     public UploadFileRequest(Context context, DbxClientV2 dbxClient, Callback callback) {
@@ -55,12 +55,15 @@ public class UploadFileRequest implements okhttp3.Callback {
     }
 
     public void enqueue(int notificationId, String filename) {
+        JSONObject tag = new JSONObject();
         JSONObject path = new JSONObject();
         try {
+            tag.put("notificationId", notificationId);
+            tag.put("filename", File.separator + filename);
             path.put("path", File.separator + filename);
         } catch (JSONException e) {
             Timber.e(e.getLocalizedMessage());
-            callback.onError(notificationId, e.getLocalizedMessage());
+            callback.onError(notificationId, filename, e.getLocalizedMessage());
             return;
         }
         InputStream inputStream;
@@ -69,7 +72,7 @@ public class UploadFileRequest implements okhttp3.Callback {
                     filename));
         } catch (FileNotFoundException e) {
             Timber.e(e.getLocalizedMessage());
-            callback.onError(notificationId, e.getLocalizedMessage());
+            callback.onError(notificationId, filename, e.getLocalizedMessage());
             return;
         }
         RequestBody requestBody = RequestBinaryUtil.create(MediaType
@@ -80,7 +83,7 @@ public class UploadFileRequest implements okhttp3.Callback {
                 .addHeader("Dropbox-API-Arg", path.toString())
                 .addHeader("Content-Type", "application/octet-stream")
                 .post(requestBody)
-                .tag(notificationId)
+                .tag(tag.toString())
                 .build();
         client.newCall(request)
                 .enqueue(this);
@@ -89,7 +92,7 @@ public class UploadFileRequest implements okhttp3.Callback {
     @Override
     public void onFailure(Call call, IOException e) {
         Timber.e(e.toString());
-        callback.onError((int) call.request().tag(), e.getLocalizedMessage());
+        callback.onError(getNotificationId(call), getFilename(call), e.getLocalizedMessage());
     }
 
     @Override
@@ -100,21 +103,41 @@ public class UploadFileRequest implements okhttp3.Callback {
             callback.onError((int) call.request().tag(), "Запрос не выполнен");
             return;
         }
-        String res = response.body().string();
-        Timber.d("OUTPUT: %s", res);
-        if (res == null || res.isEmpty() || res.equals("null")) {
+        String json = response.body().string();
+        Timber.d("OUTPUT: %s", json);
+        if (json == null || json.isEmpty() || json.equals("null")) {
             callback.onError((int) call.request().tag(), "Невалидный ответ на запрос");
+            return;
+        }
+        try {
+            JSONObject object = new JSONObject(json);
+            .put("path", File.separator + filename);
+        } catch (JSONException e) {
+            Timber.e(e.getLocalizedMessage());
+            callback.onError(notificationId, e.getLocalizedMessage());
             return;
         }
         dbxClient.sharing()
                 .createSharedLinkWithSettings(File.separator + values[1])
     }
 
-    private int getNotificationId(String tag) {
-
+    private int getNotificationId(Call call) {
+        try {
+            JSONObject object = new JSONObject((String) call.request().tag());
+            return object.getInt("notificationId");
+        } catch (JSONException e) {
+            Timber.e(e.getLocalizedMessage());
+            return 0;
+        }
     }
 
-    private int getFilename(String tag) {
-
+    private String getFilename(Call call) {
+        try {
+            JSONObject object = new JSONObject((String) call.request().tag());
+            return object.getString("filename");
+        } catch (JSONException e) {
+            Timber.e(e.getLocalizedMessage());
+            return "неизвестный файл";
+        }
     }
 }
