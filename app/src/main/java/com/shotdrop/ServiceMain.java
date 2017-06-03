@@ -56,6 +56,8 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
 
     private Prefs prefs;
 
+    private boolean hasWorkingRequest = false;
+
     private BroadcastReceiver cancelUploadReceiver = new BroadcastReceiver() {
 
         @Override
@@ -66,7 +68,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     notificationManager.cancel(notificationId);
-                    onStartUpload(filename);
+                    onScreenshotTaken(filename);
                     break;
                 default:
                     break;
@@ -128,33 +130,25 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
     }
 
     @Override
-    public void onScreenshotTaken(String filename, Long lastModified) {
-        if (!prefs.enabledMultiTasks()) {
-            if (lastModified != null) {
-                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModified);
-            }
-        } else {
-            prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
-        }
-        onStartUpload(filename);
-    }
-
-    private void onStartUpload(String filename) {
+    public void onScreenshotTaken(String filename) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        if (!prefs.enabledMultiTasks()) {
+        if (!prefs.enabledMultiTasks() && hasWorkingRequest) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                    "Пропущен новый скриншот", null);
-        } else {
-            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                    "К загрузке " + filename, null);
-            int notificationId = showNotification(NOTIFICATION_TYPE_UPLOAD, filename,
-                    "Идет загрузка...", null);
-            request.enqueue(notificationId, filename);
+                    "Пропущен скриншот", null);
+            return;
         }
+        if (!prefs.enabledMultiTasks()) {
+            hasWorkingRequest = true;
+        }
+        showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                "К загрузке " + filename, null);
+        int notificationId = showNotification(NOTIFICATION_TYPE_UPLOAD, filename,
+                "Идет загрузка...", null);
+        request.enqueue(notificationId, filename);
     }
 
     @Override
@@ -163,6 +157,9 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         ClipboardUtil.copy(getApplicationContext(), url);
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "Загружен и скопирован " + filename, null);
+        if (!prefs.enabledMultiTasks()) {
+            hasWorkingRequest = false;
+        }
     }
 
     @Override
@@ -172,6 +169,9 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                 "Не удалось загрузить ¯\\(ツ)/¯", null);
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 message, null);
+        if (!prefs.enabledMultiTasks()) {
+            hasWorkingRequest = false;
+        }
     }
 
     @Override
