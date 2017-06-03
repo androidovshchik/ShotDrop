@@ -37,7 +37,6 @@ import timber.log.Timber;
 public class ServiceMain extends Service implements ScreenshotCallback {
 
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
-    private static final String NOTIFICATION_ACTION_REMOVE = "com.shotdrop.broadcast.remove";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
     private static final String KEY_FILENAME = "filename";
     private static final int NOTIFICATION_TYPE_PRIMARY_START = 1;
@@ -66,10 +65,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             int notificationId = intent.getIntExtra(KEY_NOTIFICATION_ID, 0);
             String filename = intent.getStringExtra(KEY_FILENAME);
             switch (intent.getAction()) {
-                case NOTIFICATION_ACTION_REMOVE:
-                    Timber.d("NOTIFICATION_ACTION_REMOVE");
-                    onFinishUpload(notificationId);
-                    break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     onFinishUpload(notificationId);
@@ -92,7 +87,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
-        intentFilter.addAction(NOTIFICATION_ACTION_REMOVE);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
         prefs = new Prefs(getApplicationContext());
@@ -200,10 +194,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     private void removeCertainTask(int notificationId) {
-        if (!prefs.enabledMultiTasks()) {
-            removeAllTasks();
-            return;
-        }
         for (int i = 0; i < tasks.size(); i++) {
             if (tasks.get(i).notificationId == notificationId) {
                 tasks.get(i).cancel(false);
@@ -252,7 +242,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(title);
         Intent intentMain;
-        Intent intentRemove = new Intent(NOTIFICATION_ACTION_REMOVE);
         int newNotificationId;
         if (text != null) {
             builder.setContentText(text);
@@ -278,10 +267,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 }
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
-                intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
-                intentRemove.putExtra(KEY_FILENAME, title);
-                builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
-                        intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             case NOTIFICATION_TYPE_REPEAT:
                 if (prevNotificationId != null) {
@@ -297,10 +282,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 builder.addAction(0, getString(R.string.notification_repeat),
                         PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
                                 PendingIntent.FLAG_UPDATE_CURRENT));
-                intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
-                intentRemove.putExtra(KEY_FILENAME, title);
-                builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
-                        intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             default:
                 return 0;
