@@ -242,6 +242,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             scheduledFuture.cancel(true);
         }
         unregisterReceiver(cancelUploadReceiver);
+        stopForeground(true);
         notificationManager.cancelAll();
         wakeLock.release();
     }

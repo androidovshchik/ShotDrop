@@ -30,6 +30,9 @@ public final class Prefs {
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
     public static final String DEBUG_MODE = "debugMode";
 
+    // for non multi-tasks
+    public static final String LAST_SCREENSHOT_MODIFIED = "lastScreenshotModified";
+
     public static final String OBSERVER_CLASS = "observerClass";
 
     /* Util strings */
@@ -98,6 +101,8 @@ public final class Prefs {
         putBoolean(ENABLE_APPLICATION, false);
         putBoolean(ENABLE_START_AFTER_REBOOT, false);
         putBoolean(ENABLE_UPLOAD_ONLY_BY_WIFI, false);
+        putBoolean(ENABLE_MULTI_TASKS, false);
+        putBoolean(DEBUG_MODE, false);
         remove(ACCESS_TOKEN);
         remove(USER_ID);
         remove(USER_EMAIL);
