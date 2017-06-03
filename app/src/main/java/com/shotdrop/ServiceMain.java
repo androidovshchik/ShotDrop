@@ -139,8 +139,9 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
                     "Служба запущена", null);
             return START_STICKY;
+        } else {
+            return START_NOT_STICKY;
         }
-        return START_NOT_STICKY;
     }
 
     @Override
@@ -204,7 +205,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private void onFinishUpload(int notificationId, Long lastModified) {
         notificationManager.cancel(notificationId);
-        removeTask(notificationId);
+        removeCertainTask(notificationId);
         if (!prefs.enabledMultiTasks()) {
             if (lastModified != null) {
                 prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
@@ -212,9 +213,12 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         }
     }
 
-    private void removeTask(int notificationId) {
+    private void removeCertainTask(int notificationId) {
         if (!prefs.enabledMultiTasks()) {
             removeSingleTask();
+            return;
+        }
+        if (tasks == null) {
             return;
         }
         for (int i = 0; i < tasks.size(); i++) {
@@ -229,6 +233,9 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private void removeAllTasks() {
         if (!prefs.enabledMultiTasks()) {
             removeSingleTask();
+            return;
+        }
+        if (tasks == null) {
             return;
         }
         for (int i = tasks.size() - 1; i >= 0; i--) {
@@ -309,6 +316,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                         PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
                                 PendingIntent.FLAG_UPDATE_CURRENT));
                 intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intentRemove.putExtra(KEY_FILENAME, title);
                 builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
                         intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
@@ -327,6 +335,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                         PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
                                 PendingIntent.FLAG_UPDATE_CURRENT));
                 intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intentRemove.putExtra(KEY_FILENAME, title);
                 builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
                         intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
