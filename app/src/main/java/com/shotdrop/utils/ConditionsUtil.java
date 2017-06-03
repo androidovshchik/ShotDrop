@@ -30,13 +30,13 @@ public class ConditionsUtil {
         hasEnabledApplication = onlyWhen(Prefs.ENABLE_APPLICATION);
         // needed to init boolean vars
         checkOptional();
+        log();
         return hasAllPermissions && hasDropboxAccount && hasEnabledApplication;
     }
 
     public boolean checkOptional() {
         onlyWifiConnection = onlyWhen(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI);
         hasWifiConnection = wifiManager.isWifiEnabled();
-        log();
         return hasWifiConnection || !onlyWifiConnection;
     }
 
