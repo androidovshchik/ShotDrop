@@ -38,6 +38,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private static final String NOTIFICATION_ACTION_CANCEL = "com.shotdrop.broadcast.cancel";
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
+    private static final String NOTIFICATION_ACTION_REMOVE = "com.shotdrop.broadcast.remove";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
     private static final String KEY_FILENAME = "filename";
     private static final int NOTIFICATION_TYPE_PRIMARY_START = 1;
@@ -69,14 +70,17 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             switch (intent.getAction()) {
                 case NOTIFICATION_ACTION_CANCEL:
                     Timber.d("NOTIFICATION_ACTION_CANCEL");
-                    notificationManager.cancel(notificationId);
-                    removeTask(notificationId);
+                    onFinishUpload(notificationId, null);
                     showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                             "Отменен " + filename, null);
                     break;
+                case NOTIFICATION_ACTION_REMOVE:
+                    Timber.d("NOTIFICATION_ACTION_REMOVE");
+                    onFinishUpload(notificationId, null);
+                    break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
-                    notificationManager.cancel(notificationId);
+                    onFinishUpload(notificationId, null);
                     startUploadTask(filename, null);
                     break;
                 default:
@@ -271,7 +275,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                         type == NOTIFICATION_TYPE_PRIMARY_UPDATE ? R.drawable.ic_dropbox_white :
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(title);
-        Intent intent;
+        Intent intentMain;
+        Intent intentRemove = new Intent(NOTIFICATION_ACTION_REMOVE);
         int newNotificationId;
         if (text != null) {
             builder.setContentText(text);
@@ -279,10 +284,10 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         switch (type) {
             case NOTIFICATION_TYPE_PRIMARY_START: case NOTIFICATION_TYPE_PRIMARY_UPDATE:
                 newNotificationId = NOTIFICATION_PRIMARY_ID;
-                intent = new Intent(getApplicationContext(), ActivityMain.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intentMain = new Intent(getApplicationContext(), ActivityMain.class);
+                intentMain.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 builder.setContentIntent(PendingIntent.getActivity(getApplicationContext(),
-                        0, intent, 0));
+                        0, intentMain, 0));
                 if (type == NOTIFICATION_TYPE_PRIMARY_START) {
                     startForeground(NOTIFICATION_PRIMARY_ID, builder.build());
                     return newNotificationId;
@@ -295,14 +300,17 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     lastNotificationId++;
                     newNotificationId = lastNotificationId;
                 }
-                intent = new Intent(NOTIFICATION_ACTION_CANCEL);
-                intent.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
-                intent.putExtra(KEY_FILENAME, title);
+                intentMain = new Intent(NOTIFICATION_ACTION_CANCEL);
+                intentMain.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intentMain.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
                 builder.addAction(0, getString(android.R.string.cancel),
-                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                        PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
                                 PendingIntent.FLAG_UPDATE_CURRENT));
+                intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
+                        intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             case NOTIFICATION_TYPE_REPEAT:
                 if (prevNotificationId != null) {
@@ -311,13 +319,16 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     lastNotificationId++;
                     newNotificationId = lastNotificationId;
                 }
-                intent = new Intent(NOTIFICATION_ACTION_REPEAT);
-                intent.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
-                intent.putExtra(KEY_FILENAME, title);
+                intentMain = new Intent(NOTIFICATION_ACTION_REPEAT);
+                intentMain.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                intentMain.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.addAction(0, getString(R.string.notification_repeat),
-                        PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                        PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
                                 PendingIntent.FLAG_UPDATE_CURRENT));
+                intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
+                builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
+                        intentRemove, PendingIntent.FLAG_UPDATE_CURRENT));
                 break;
             default:
                 return 0;
