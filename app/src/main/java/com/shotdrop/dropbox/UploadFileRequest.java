@@ -94,7 +94,7 @@ public class UploadFileRequest implements okhttp3.Callback {
 
     @Override
     public void onFailure(Call call, IOException e) {
-        Timber.e(e.toString());
+        Timber.e(e.getLocalizedMessage());
         callback.onError(getNotificationId(call), getFilename(call), e.getLocalizedMessage());
     }
 
