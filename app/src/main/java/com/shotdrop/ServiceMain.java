@@ -5,20 +5,24 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.view.Gravity;
+import android.widget.Toast;
 
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.UploadFileRequest;
 import com.shotdrop.observers.ScheduledExecutorServiceClass;
 import com.shotdrop.observers.ScreenshotCallback;
-import com.shotdrop.utils.ClipboardUtil;
 import com.shotdrop.utils.ConditionsUtil;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
@@ -46,6 +50,9 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
     private NotificationManager notificationManager;
 
     private PowerManager.WakeLock wakeLock;
+
+    private ClipboardManager clipboard;
+    private Handler toastHandler;
 
     private ConditionsUtil conditions;
 
@@ -83,6 +90,8 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 getString(R.string.app_name));
         wakeLock.acquire();
+        clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        toastHandler = new Handler();
         notificationManager = (NotificationManager) getApplicationContext()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         IntentFilter intentFilter = new IntentFilter();
@@ -154,12 +163,21 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
     @Override
     public void onSuccess(int notificationId, String filename, String url) {
         notificationManager.cancel(notificationId);
-        ClipboardUtil.copy(getApplicationContext(), url);
+        ClipData clip = ClipData.newPlainText("", url);
+        clipboard.setPrimaryClip(clip);
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "Загружен и скопирован " + filename, null);
         if (!prefs.enabledMultiTasks()) {
             hasWorkingRequest = false;
         }
+        toastHandler.post(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "ShotDrop++ ссылка cкопирована", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 0);
+                toast.show();
+            }
+        });
     }
 
     @Override

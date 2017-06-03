@@ -9,6 +9,7 @@ import okhttp3.internal.Util;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
+import timber.log.Timber;
 
 public class RequestBinaryUtil {
 
@@ -25,6 +26,7 @@ public class RequestBinaryUtil {
                 try {
                     return inputStream.available();
                 } catch (IOException e) {
+                    Timber.e(e.getLocalizedMessage());
                     return 0;
                 }
             }
