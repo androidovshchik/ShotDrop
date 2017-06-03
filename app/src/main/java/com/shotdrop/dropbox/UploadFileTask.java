@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import timber.log.Timber;
-
 /**
  * Async task to upload a file to a directory
  */
@@ -25,7 +23,6 @@ public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> 
     public final int notificationId;
 
     private final DbxClientV2 dbxClient;
-    private DbxUploader uploader;
 
     private final Callback callback;
 
@@ -55,15 +52,9 @@ public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> 
     }
 
     @Override
-    protected void onCancelled() {
-        uploader.abort();
-        uploader.close();
-    }
-
-    @Override
     protected SharedLinkMetadata doInBackground(String... values) {
         try (InputStream inputStream = new FileInputStream(new File(values[0] + values[1]))) {
-            uploader = dbxClient.files()
+            DbxUploader uploader = dbxClient.files()
                     .uploadBuilder(File.separator + values[1])
                     .withMode(WriteMode.OVERWRITE)
                     .start();

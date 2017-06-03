@@ -36,7 +36,6 @@ import timber.log.Timber;
 
 public class ServiceMain extends Service implements ScreenshotCallback {
 
-    private static final String NOTIFICATION_ACTION_CANCEL = "com.shotdrop.broadcast.cancel";
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
     private static final String NOTIFICATION_ACTION_REMOVE = "com.shotdrop.broadcast.remove";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
@@ -67,12 +66,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             int notificationId = intent.getIntExtra(KEY_NOTIFICATION_ID, 0);
             String filename = intent.getStringExtra(KEY_FILENAME);
             switch (intent.getAction()) {
-                case NOTIFICATION_ACTION_CANCEL:
-                    Timber.d("NOTIFICATION_ACTION_CANCEL");
-                    onFinishUpload(notificationId);
-                    showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                            "Отменен " + filename, null);
-                    break;
                 case NOTIFICATION_ACTION_REMOVE:
                     Timber.d("NOTIFICATION_ACTION_REMOVE");
                     onFinishUpload(notificationId);
@@ -98,8 +91,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         notificationManager = (NotificationManager) getApplicationContext()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(NOTIFICATION_ACTION_CANCEL);
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
+        intentFilter.addAction(NOTIFICATION_ACTION_REMOVE);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
         prefs = new Prefs(getApplicationContext());
@@ -213,7 +206,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         }
         for (int i = 0; i < tasks.size(); i++) {
             if (tasks.get(i).notificationId == notificationId) {
-                tasks.get(i).cancel(true);
+                tasks.get(i).cancel(false);
                 tasks.remove(i);
                 break;
             }
@@ -222,7 +215,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private void removeAllTasks() {
         for (int i = tasks.size() - 1; i >= 0; i--) {
-            tasks.get(i).cancel(true);
+            tasks.get(i).cancel(false);
             tasks.remove(i);
         }
     }
@@ -235,7 +228,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             fileObserver.stop();
         }
         if (prefs.isClassScheduledExecutorService() && scheduledFuture != null) {
-            scheduledFuture.cancel(true);
+            scheduledFuture.cancel(false);
         }
         unregisterReceiver(cancelUploadReceiver);
         stopForeground(true);
@@ -283,14 +276,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     lastNotificationId++;
                     newNotificationId = lastNotificationId;
                 }
-                intentMain = new Intent(NOTIFICATION_ACTION_CANCEL);
-                intentMain.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
-                intentMain.putExtra(KEY_FILENAME, title);
                 builder.setPriority(Notification.PRIORITY_MAX);
                 builder.setProgress(0, 0, true);
-                builder.addAction(0, getString(android.R.string.cancel),
-                        PendingIntent.getBroadcast(getApplicationContext(), 0, intentMain,
-                                PendingIntent.FLAG_UPDATE_CURRENT));
                 intentRemove.putExtra(KEY_NOTIFICATION_ID, newNotificationId);
                 intentRemove.putExtra(KEY_FILENAME, title);
                 builder.setDeleteIntent(PendingIntent.getBroadcast(getApplicationContext(), 0,
