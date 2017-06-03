@@ -200,9 +200,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     private void removeTask(int notificationId) {
-        if (!prefs.enabledMultiTasks() && task != null) {
-            task.cancel(true);
-            task = null;
+        if (!prefs.enabledMultiTasks()) {
+            removeSingleTask();
             return;
         }
         for (int i = 0; i < tasks.size(); i++) {
@@ -215,14 +214,20 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     private void removeAllTasks() {
-        if (!prefs.enabledMultiTasks() && task != null) {
-            task.cancel(true);
-            task = null;
+        if (!prefs.enabledMultiTasks()) {
+            removeSingleTask();
             return;
         }
         for (int i = tasks.size() - 1; i >= 0; i--) {
             tasks.get(i).cancel(true);
             tasks.remove(i);
+        }
+    }
+
+    private void removeSingleTask() {
+        if (task != null) {
+            task.cancel(true);
+            task = null;
         }
     }
 
