@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 /**
  * Async task to upload a file to a directory
@@ -59,12 +58,6 @@ public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> 
                     .withMode(WriteMode.OVERWRITE)
                     .start();
             uploader.uploadAndFinish(inputStream);
-            List<SharedLinkMetadata> links = dbxClient.sharing().listSharedLinks().getLinks();
-            for (int i = 0; i < links.size(); i++) {
-                if (links.get(i).getPathLower().equals(File.separator + values[1].toLowerCase())) {
-                    return links.get(i);
-                }
-            }
             return dbxClient.sharing()
                     .createSharedLinkWithSettings(File.separator + values[1]);
         } catch (DbxException | IOException e) {
