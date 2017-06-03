@@ -45,8 +45,8 @@ public class ScheduledExecutorServiceClass implements Runnable {
         });
         long lastModifiedMemory = lastModifiedFromMemory();
         if (lastModifiedMemory == 0) {
-            // it's better to upload nothing in such case
-            return;
+            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED,
+                    String.valueOf(files.get(count - 1).lastModified()));
         }
         if (files.get(count - 1).lastModified() > lastModifiedMemory) {
             callback.onScreenshotTaken(files.get(count - 1).getName(),

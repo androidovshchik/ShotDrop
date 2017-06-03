@@ -27,6 +27,8 @@ public class FragmentSettings extends PreferenceFragment
     private SwitchPreference enableApplication;
     private SwitchPreference enableUploadOnlyByWifi;
     private SwitchPreference enableStartAfterReboot;
+    private SwitchPreference enableMultiTasks;
+    private SwitchPreference debugMode;
 
     private PreferenceCategory userInfo;
 
@@ -52,10 +54,12 @@ public class FragmentSettings extends PreferenceFragment
         enableStartAfterReboot = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_START_AFTER_REBOOT);
         enableStartAfterReboot.setOnPreferenceChangeListener(this);
-
-        Preference enableMultiTasks = getPreferenceManager()
+        enableMultiTasks = (SwitchPreference) getPreferenceManager()
                 .findPreference(Prefs.ENABLE_MULTI_TASKS);
         enableMultiTasks.setOnPreferenceChangeListener(this);
+        debugMode = (SwitchPreference) getPreferenceManager()
+                .findPreference(Prefs.DEBUG_MODE);
+        debugMode.setOnPreferenceChangeListener(this);
 
         if (!prefs.has(Prefs.SCREENSHOTS_PATH)) {
             prefs.putString(Prefs.SCREENSHOTS_PATH, prefs.getScreenshotsPath());
@@ -181,6 +185,8 @@ public class FragmentSettings extends PreferenceFragment
         enableApplication.setChecked(prefs.getBoolean(Prefs.ENABLE_APPLICATION));
         enableStartAfterReboot.setChecked(prefs.getBoolean(Prefs.ENABLE_START_AFTER_REBOOT));
         enableUploadOnlyByWifi.setChecked(prefs.getBoolean(Prefs.ENABLE_UPLOAD_ONLY_BY_WIFI));
+        enableMultiTasks.setChecked(prefs.getBoolean(Prefs.ENABLE_MULTI_TASKS));
+        debugMode.setChecked(prefs.getBoolean(Prefs.DEBUG_MODE));
     }
 
     public void applyAccountInfo(@Nullable String email, @Nullable String displayName) {

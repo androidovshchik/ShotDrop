@@ -70,8 +70,7 @@ public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> 
             uploader.uploadAndFinish(inputStream);
             List<SharedLinkMetadata> links = dbxClient.sharing().listSharedLinks().getLinks();
             for (int i = 0; i < links.size(); i++) {
-                Timber.d(":::::::::: " + links.get(i).getPathLower());
-                if (links.get(i).getPathLower().equals(File.separator + values[1])) {
+                if (links.get(i).getPathLower().equals(File.separator + values[1].toLowerCase())) {
                     return links.get(i);
                 }
             }
