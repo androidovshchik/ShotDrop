@@ -151,6 +151,12 @@ public class FragmentSettings extends PreferenceFragment
     public void onClick(DialogInterface dialog, int which) {
         switch (which){
             case DialogInterface.BUTTON_POSITIVE:
+                boolean isServiceRunning = ServiceMain.isRunning(getActivity()
+                        .getApplicationContext());
+                if (isServiceRunning) {
+                    getActivity().stopService(ServiceMain.getStartIntent(getActivity()
+                            .getApplicationContext()));
+                }
                 Toast.makeText(getActivity().getApplicationContext(),
                         getString(R.string.alert_logout), Toast.LENGTH_SHORT)
                         .show();
