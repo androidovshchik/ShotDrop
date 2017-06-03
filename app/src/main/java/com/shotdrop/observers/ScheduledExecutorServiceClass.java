@@ -45,8 +45,8 @@ public class ScheduledExecutorServiceClass implements Runnable {
         });
         long lastModifiedMemory = lastModifiedFromMemory();
         if (lastModifiedMemory == 0) {
-            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED,
-                    String.valueOf(files.get(count - 1).lastModified()));
+            lastModifiedMemory = files.get(count - 1).lastModified();
+            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModifiedMemory);
         }
         if (files.get(count - 1).lastModified() > lastModifiedMemory) {
             callback.onScreenshotTaken(files.get(count - 1).getName(),

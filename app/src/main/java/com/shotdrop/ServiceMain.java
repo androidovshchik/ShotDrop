@@ -59,7 +59,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private Prefs prefs;
 
     private ArrayList<UploadFileTask> tasks;
-    private UploadFileTask task;
 
     private BroadcastReceiver cancelUploadReceiver = new BroadcastReceiver() {
 
@@ -104,9 +103,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
         prefs = new Prefs(getApplicationContext());
-        if (prefs.enabledMultiTasks()) {
-            tasks = new ArrayList<>();
-        }
+        tasks = new ArrayList<>();
         if (prefs.isClassFileObserver()) {
             fileObserver = new FileObserverClass(prefs.getScreenshotsPath(), this);
         }
@@ -148,7 +145,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     public void onScreenshotTaken(String filename, Long lastModified) {
         if (!prefs.enabledMultiTasks()) {
             if (lastModified != null) {
-                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
+                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModified);
             }
         } else {
             prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
@@ -165,21 +162,16 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        if (!prefs.enabledMultiTasks() && task != null) {
+        if (!prefs.enabledMultiTasks() && tasks.size() > 0) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Пропущен новый скриншот", null);
-            return;
-        }
-        showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                "К загрузке " + filename, null);
-        int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
-                "Идет загрузка...", null);
-        if (prefs.enabledMultiTasks()) {
+        } else {
+            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                    "К загрузке " + filename, null);
+            int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
+                    "Идет загрузка...", null);
             tasks.add(getUploadTask(notificationId, filename));
             tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
-        } else {
-            task = getUploadTask(notificationId, filename);
-            task.execute(prefs.getScreenshotsPath(), filename);
         }
     }
 
@@ -216,10 +208,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private void removeCertainTask(int notificationId) {
         if (!prefs.enabledMultiTasks()) {
-            removeSingleTask();
-            return;
-        }
-        if (tasks == null) {
+            removeAllTasks();
             return;
         }
         for (int i = 0; i < tasks.size(); i++) {
@@ -232,23 +221,9 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     private void removeAllTasks() {
-        if (!prefs.enabledMultiTasks()) {
-            removeSingleTask();
-            return;
-        }
-        if (tasks == null) {
-            return;
-        }
         for (int i = tasks.size() - 1; i >= 0; i--) {
             tasks.get(i).cancel(true);
             tasks.remove(i);
-        }
-    }
-
-    private void removeSingleTask() {
-        if (task != null) {
-            task.cancel(true);
-            task = null;
         }
     }
 
