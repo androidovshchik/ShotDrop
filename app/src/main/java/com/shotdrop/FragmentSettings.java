@@ -133,15 +133,6 @@ public class FragmentSettings extends PreferenceFragment
                             getString(R.string.alert_stop), Toast.LENGTH_SHORT)
                             .show();
                 }
-                if (preference.getKey().equals(Prefs.ENABLE_MULTI_TASKS) && (boolean) newValue &&
-                        prefs.isClassScheduledExecutorService() ||
-                        preference.getKey().equals(Prefs.OBSERVER_CLASS) &&
-                                prefs.enabledMultiTasks() && newValue.equals("2")) {
-                    Toast.makeText(getActivity().getApplicationContext(),
-                            getString(R.string.alert_not_compatible), Toast.LENGTH_SHORT)
-                            .show();
-                    return false;
-                }
                 return true;
         }
         return true;

@@ -136,12 +136,12 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        if (!prefs.enabledMultiTasks() && hasWorkingRequest) {
-            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                    "Пропущен скриншот", null);
-            return;
-        }
         if (!prefs.enabledMultiTasks()) {
+            if (hasWorkingRequest) {
+                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                        "Пропущен скриншот", null);
+                return;
+            }
             hasWorkingRequest = true;
         }
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
