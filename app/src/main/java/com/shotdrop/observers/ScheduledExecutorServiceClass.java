@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import com.shotdrop.utils.Prefs;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,8 +25,8 @@ public class ScheduledExecutorServiceClass implements Runnable {
 
     public ScheduledExecutorServiceClass(@NonNull String path, @NonNull Context context,
                                          @NonNull ScreenshotCallback callback) {
-        screenshotsFolder = new File(path);
-        prefs = new Prefs(context);
+        this.screenshotsFolder = new File(path);
+        this.prefs = new Prefs(context);
         this.callback = callback;
     }
 
@@ -46,11 +48,32 @@ public class ScheduledExecutorServiceClass implements Runnable {
             lastModifiedMemory = files.get(count - 1).lastModified();
             prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModifiedMemory);
         }
-        if (files.get(count - 1).lastModified() > lastModifiedMemory) {
+        if (isCompletelyWritten(files.get(count - 1)) &&
+                files.get(count - 1).lastModified() > lastModifiedMemory) {
             prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED,
                     files.get(count - 1).lastModified());
             callback.onScreenshotTaken(files.get(count - 1).getName());
         }
+    }
+
+    private boolean isCompletelyWritten(File file) {
+        RandomAccessFile stream = null;
+        try {
+            stream = new RandomAccessFile(file, "rw");
+            return true;
+        } catch (Exception e) {
+            Timber.d("Skipping file " + file.getName() +
+                    " for this iteration due it's not completely written");
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    Timber.e("Exception during closing file " + file.getName());
+                }
+            }
+        }
+        return false;
     }
 
     private long lastModifiedFromMemory() {
