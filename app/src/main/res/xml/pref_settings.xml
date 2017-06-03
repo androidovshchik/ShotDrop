@@ -34,7 +34,7 @@
 
     <EditTextPreference
         android:key="screenshotsPath"
-        android:title="Путь к скриншотам"
+        android:title="Путь к файлам"
         android:dialogTitle="Путь к скриншотам" />
 
     <ListPreference

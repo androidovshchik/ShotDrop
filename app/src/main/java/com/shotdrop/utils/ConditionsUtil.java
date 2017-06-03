@@ -11,6 +11,8 @@ public class ConditionsUtil {
 
     private boolean hasAllPermissions;
 
+    private boolean hasAccessToken;
+
     private boolean hasDropboxAccount;
 
     private boolean hasEnabledApplication;
@@ -26,12 +28,13 @@ public class ConditionsUtil {
 
     public boolean checkRequired(Context context) {
         hasAllPermissions = PermissionsUtil.hasAllPermissions(context);
+        hasAccessToken = prefs.has(Prefs.ACCESS_TOKEN);
         hasDropboxAccount = onlyWhen(Prefs.ENABLE_DROPBOX_ACCOUNT);
         hasEnabledApplication = onlyWhen(Prefs.ENABLE_APPLICATION);
         // needed to init boolean vars
         checkOptional();
         log();
-        return hasAllPermissions && hasDropboxAccount && hasEnabledApplication;
+        return hasAllPermissions && hasAccessToken && hasDropboxAccount && hasEnabledApplication;
     }
 
     public boolean checkOptional() {
@@ -48,6 +51,7 @@ public class ConditionsUtil {
         String classname = getClass().getSimpleName();
         LogUtil.logDivider(classname, "*");
         LogUtil.logCentered("*", classname, "hasAllPermissions: " + hasAllPermissions);
+        LogUtil.logCentered("*", classname, "hasAccessToken: " + hasAccessToken);
         LogUtil.logCentered("*", classname, "hasDropboxAccount: " + hasDropboxAccount);
         LogUtil.logCentered("*", classname, "hasEnabledApplication: " + hasEnabledApplication);
         LogUtil.logCentered("*", classname, "onlyWifiConnection: " + onlyWifiConnection);
