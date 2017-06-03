@@ -14,9 +14,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
-import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.shotdrop.dropbox.DropboxClientFactory;
-import com.shotdrop.dropbox.UploadFileTask;
+import com.shotdrop.dropbox.UploadFileRequest;
 import com.shotdrop.observers.ScheduledExecutorServiceClass;
 import com.shotdrop.observers.ScreenshotCallback;
 import com.shotdrop.utils.ClipboardUtil;
@@ -26,7 +25,6 @@ import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.Prefs;
 import com.shotdrop.observers.FileObserverClass;
 
-import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -34,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
-public class ServiceMain extends Service implements ScreenshotCallback {
+public class ServiceMain extends Service implements ScreenshotCallback, UploadFileRequest.Callback {
 
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
@@ -51,12 +49,12 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private ConditionsUtil conditions;
 
+    private UploadFileRequest request;
+
     private FileObserverClass fileObserver;
     private ScheduledFuture<?> scheduledFuture;
 
     private Prefs prefs;
-
-    private ArrayList<UploadFileTask> tasks;
 
     private BroadcastReceiver cancelUploadReceiver = new BroadcastReceiver() {
 
@@ -68,7 +66,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     notificationManager.cancel(notificationId);
-                    startUploadTask(filename);
+                    onStartUpload(filename);
                     break;
                 default:
                     break;
@@ -89,8 +87,9 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
+        request = new UploadFileRequest(getApplicationContext(), DropboxClientFactory
+                .getClient(getApplicationContext()), this);
         prefs = new Prefs(getApplicationContext());
-        tasks = new ArrayList<>();
         if (prefs.isClassFileObserver()) {
             fileObserver = new FileObserverClass(prefs.getScreenshotsPath(), this);
         }
@@ -137,19 +136,16 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         } else {
             prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
         }
-        startUploadTask(filename);
+        onStartUpload(filename);
     }
 
-    /**
-     * New task. New notification
-     */
-    private void startUploadTask(String filename) {
+    private void onStartUpload(String filename) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        if (!prefs.enabledMultiTasks() && tasks.size() > 0) {
+        if (!prefs.enabledMultiTasks()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Пропущен новый скриншот", null);
         } else {
@@ -157,61 +153,30 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     "К загрузке " + filename, null);
             int notificationId = showNotification(NOTIFICATION_TYPE_UPLOAD, filename,
                     "Идет загрузка...", null);
-            tasks.add(getUploadTask(notificationId, filename));
-            tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
+            request.enqueue(notificationId, filename);
         }
     }
 
-    private UploadFileTask getUploadTask(final int notificationId, final String filename) {
-        return new UploadFileTask(notificationId, DropboxClientFactory
-                .getClient(getApplicationContext()), new UploadFileTask.Callback() {
-            @Override
-            public void onUploadComplete(SharedLinkMetadata result) {
-                Timber.d("onUploadComplete: " + result.getUrl());
-                onFinishUpload(notificationId);
-                ClipboardUtil.copy(getApplicationContext(), result.getUrl());
-                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                        "Загружен и скопирован " + filename, null);
-            }
-
-            @Override
-            public void onError(@Nullable Exception e) {
-                String error = e == null ? "Возможно проблемы с подключением" :
-                        e.getLocalizedMessage();
-                Timber.e(error);
-                onFinishUpload(notificationId);
-                showNotification(NOTIFICATION_TYPE_REPEAT, filename,
-                        "Не удалось загрузить ¯\\(ツ)/¯", null);
-                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                        error, null);
-            }
-        });
-    }
-
-    private void onFinishUpload(int notificationId) {
+    @Override
+    public void onSuccess(int notificationId, String filename, String url) {
         notificationManager.cancel(notificationId);
-        removeCertainTask(notificationId);
+        ClipboardUtil.copy(getApplicationContext(), url);
+        showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                "Загружен и скопирован " + filename, null);
     }
 
-    private void removeCertainTask(int notificationId) {
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).notificationId == notificationId) {
-                tasks.remove(i);
-                break;
-            }
-        }
-    }
-
-    private void removeAllTasks() {
-        for (int i = tasks.size() - 1; i >= 0; i--) {
-            tasks.remove(i);
-        }
+    @Override
+    public void onError(int notificationId, String filename, String message) {
+        notificationManager.cancel(notificationId);
+        showNotification(NOTIFICATION_TYPE_REPEAT, filename,
+                "Не удалось загрузить ¯\\(ツ)/¯", null);
+        showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                message, null);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        removeAllTasks();
         if (prefs.isClassFileObserver() && fileObserver != null) {
             fileObserver.stop();
         }
