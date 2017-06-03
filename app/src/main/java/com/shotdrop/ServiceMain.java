@@ -40,9 +40,10 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
     private static final String KEY_NOTIFICATION_ID = "notificationId";
     private static final String KEY_FILENAME = "filename";
-    private static final int NOTIFICATION_TYPE_PRIMARY = 1;
-    private static final int NOTIFICATION_TYPE_CANCEL = 2;
-    private static final int NOTIFICATION_TYPE_REPEAT = 3;
+    private static final int NOTIFICATION_TYPE_PRIMARY_START = 1;
+    private static final int NOTIFICATION_TYPE_PRIMARY_UPDATE = 2;
+    private static final int NOTIFICATION_TYPE_CANCEL = 3;
+    private static final int NOTIFICATION_TYPE_REPEAT = 4;
     private static final int NOTIFICATION_PRIMARY_ID = 1;
     private int lastNotificationId = NOTIFICATION_PRIMARY_ID;
     private NotificationManager notificationManager;
@@ -69,7 +70,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     Timber.d("NOTIFICATION_ACTION_CANCEL");
                     notificationManager.cancel(notificationId);
                     removeTask(notificationId);
-                    showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                    showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                             "Отменен " + filename, null);
                     break;
                 case NOTIFICATION_ACTION_REPEAT:
@@ -128,10 +129,11 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                         new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(), this),
                         0, 1, TimeUnit.SECONDS);
             }
-            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+            showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
                     "Служба запущена", null);
+            return START_STICKY;
         }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -144,11 +146,11 @@ public class ServiceMain extends Service implements ScreenshotCallback {
      */
     private void newUploadTask(final String filename) {
         if (!conditions.checkOptional()) {
-            showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+        showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "К загрузке " + filename, null);
         final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
@@ -160,7 +162,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 notificationManager.cancel(notificationId);
                 removeTask(notificationId);
                 ClipboardUtil.copy(getApplicationContext(), result.getUrl());
-                showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         "Загружен и скопирован " + filename, null);
             }
 
@@ -173,7 +175,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 removeTask(notificationId);
                 showNotification(NOTIFICATION_TYPE_REPEAT, filename,
                         "Не удалось загрузить ¯\\(ツ)/¯", null);
-                showNotification(NOTIFICATION_TYPE_PRIMARY, getString(R.string.app_name),
+                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         error, null);
             }
         }));
@@ -215,7 +217,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private int showNotification(int type, @NonNull String title, @Nullable String text,
                                  @Nullable Integer prevNotificationId) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(type == NOTIFICATION_TYPE_PRIMARY ? R.drawable.ic_dropbox_white :
+                .setSmallIcon(type == NOTIFICATION_TYPE_PRIMARY_START ||
+                        type == NOTIFICATION_TYPE_PRIMARY_UPDATE ? R.drawable.ic_dropbox_white :
                         R.drawable.ic_cloud_upload_white_24dp)
                 .setContentTitle(title);
         Intent intent;
@@ -224,12 +227,16 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             builder.setContentText(text);
         }
         switch (type) {
-            case NOTIFICATION_TYPE_PRIMARY:
+            case NOTIFICATION_TYPE_PRIMARY_START: case NOTIFICATION_TYPE_PRIMARY_UPDATE:
                 newNotificationId = NOTIFICATION_PRIMARY_ID;
                 intent = new Intent(getApplicationContext(), ActivityMain.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 builder.setContentIntent(PendingIntent.getActivity(getApplicationContext(),
                         0, intent, 0));
+                if (type == NOTIFICATION_TYPE_PRIMARY_START) {
+                    startForeground(NOTIFICATION_PRIMARY_ID, builder.build());
+                    return newNotificationId;
+                }
                 break;
             case NOTIFICATION_TYPE_CANCEL:
                 if (prevNotificationId != null) {
