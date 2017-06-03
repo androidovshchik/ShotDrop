@@ -13,7 +13,6 @@ import java.util.List;
 
 import timber.log.Timber;
 
-// non multi-task observer
 public class ScheduledExecutorServiceClass implements Runnable {
 
     private ScreenshotCallback callback;
@@ -48,8 +47,9 @@ public class ScheduledExecutorServiceClass implements Runnable {
             prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModifiedMemory);
         }
         if (files.get(count - 1).lastModified() > lastModifiedMemory) {
-            callback.onScreenshotTaken(files.get(count - 1).getName(),
+            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED,
                     files.get(count - 1).lastModified());
+            callback.onScreenshotTaken(files.get(count - 1).getName());
         }
     }
 

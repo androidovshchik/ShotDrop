@@ -21,7 +21,7 @@ public final class FileObserverClass extends FileObserver {
         if (filename != null && (lastFilename == null || !filename.equals(lastFilename))) {
             Timber.d("FileObserverClass: Filename: %s", filename);
             lastFilename = filename;
-            callback.onScreenshotTaken(lastFilename, null);
+            callback.onScreenshotTaken(lastFilename);
         }
     }
 
