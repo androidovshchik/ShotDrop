@@ -100,13 +100,14 @@ public class UploadFileRequest implements okhttp3.Callback {
     public void onResponse(Call call, Response response) throws IOException {
         if (!response.isSuccessful()) {
             Timber.e("ERROR: Response is unsuccessful");
-            callback.onError((int) call.request().tag(), "Запрос не выполнен");
+            callback.onError(getNotificationId(call), getFilename(call), "Запрос не выполнен");
             return;
         }
         String json = response.body().string();
         Timber.d("OUTPUT: %s", json);
         if (json == null || json.isEmpty() || json.equals("null")) {
-            callback.onError((int) call.request().tag(), "Невалидный ответ на запрос");
+            callback.onError(getNotificationId(call), getFilename(call),
+                    "Невалидный ответ на запрос");
             return;
         }
         try {
@@ -117,8 +118,8 @@ public class UploadFileRequest implements okhttp3.Callback {
             callback.onError(notificationId, e.getLocalizedMessage());
             return;
         }
-        dbxClient.sharing()
-                .createSharedLinkWithSettings(File.separator + values[1])
+        callback.onSuccess(getNotificationId(call), getFilename(call),  dbxClient.sharing()
+                .createSharedLinkWithSettings(File.separator + values[1]));
     }
 
     private int getNotificationId(Call call) {
