@@ -1,6 +1,9 @@
 package com.shotdrop.observers;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
+
+import com.shotdrop.utils.Prefs;
 
 import java.io.File;
 import java.util.Arrays;
@@ -10,18 +13,19 @@ import java.util.List;
 
 import timber.log.Timber;
 
+// non multi-task observer
 public class ScheduledExecutorServiceClass implements Runnable {
 
     private ScreenshotCallback callback;
 
-    private String lastFilename = null;
-    private Long lastModifiedTime = null;
-
     private File screenshotsFolder;
 
-    public ScheduledExecutorServiceClass(@NonNull String path,
+    private Prefs prefs;
+
+    public ScheduledExecutorServiceClass(@NonNull String path, @NonNull Context context,
                                          @NonNull ScreenshotCallback callback) {
         screenshotsFolder = new File(path);
+        prefs = new Prefs(context);
         this.callback = callback;
     }
 
@@ -39,18 +43,23 @@ public class ScheduledExecutorServiceClass implements Runnable {
                 return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
             }
         });
-        if (lastFilename == null || lastModifiedTime == null) {
-            lastFilename = files.get(count - 1).getName();
-            lastModifiedTime = files.get(count - 1).lastModified();
-            callback.onScreenshotTaken(lastFilename);
-        } else {
-            for (int i = 0; i < count; i++) {
-                if (files.get(i).lastModified() > lastModifiedTime) {
-                    lastFilename = files.get(i).getName();
-                    lastModifiedTime = files.get(i).lastModified();
-                    callback.onScreenshotTaken(lastFilename);
-                }
-            }
+        long lastModifiedMemory = lastModifiedFromMemory();
+        if (lastModifiedMemory == 0) {
+            // it's better to upload nothing in such case
+            return;
+        }
+        if (files.get(count - 1).lastModified() > lastModifiedMemory) {
+            callback.onScreenshotTaken(files.get(count - 1).getName(),
+                    files.get(count - 1).lastModified());
+        }
+    }
+
+    private long lastModifiedFromMemory() {
+        try {
+            return Long.parseLong(prefs.getString(Prefs.LAST_SCREENSHOT_MODIFIED, "0"));
+        } catch (NumberFormatException e) {
+            Timber.e(e.getLocalizedMessage());
+            return 0;
         }
     }
 }

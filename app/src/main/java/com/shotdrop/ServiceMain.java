@@ -70,18 +70,18 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             switch (intent.getAction()) {
                 case NOTIFICATION_ACTION_CANCEL:
                     Timber.d("NOTIFICATION_ACTION_CANCEL");
-                    onFinishUpload(notificationId, null);
+                    onFinishUpload(notificationId);
                     showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                             "Отменен " + filename, null);
                     break;
                 case NOTIFICATION_ACTION_REMOVE:
                     Timber.d("NOTIFICATION_ACTION_REMOVE");
-                    onFinishUpload(notificationId, null);
+                    onFinishUpload(notificationId);
                     break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
-                    onFinishUpload(notificationId, null);
-                    startUploadTask(filename, null);
+                    onFinishUpload(notificationId);
+                    startUploadTask(filename);
                     break;
                 default:
                     break;
@@ -146,13 +146,20 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     @Override
     public void onScreenshotTaken(String filename, Long lastModified) {
-        startUploadTask(filename, lastModified);
+        if (!prefs.enabledMultiTasks()) {
+            if (lastModified != null) {
+                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
+            }
+        } else {
+            prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
+        }
+        startUploadTask(filename);
     }
 
     /**
      * New task. New notification
      */
-    private void startUploadTask(String filename, Long lastModified) {
+    private void startUploadTask(String filename) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
@@ -168,22 +175,21 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
         if (prefs.enabledMultiTasks()) {
-            tasks.add(getUploadTask(notificationId, filename, lastModified));
+            tasks.add(getUploadTask(notificationId, filename));
             tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
         } else {
-            task = getUploadTask(notificationId, filename, lastModified);
+            task = getUploadTask(notificationId, filename);
             task.execute(prefs.getScreenshotsPath(), filename);
         }
     }
 
-    private UploadFileTask getUploadTask(final int notificationId, final String filename,
-                                         final Long lastModified) {
+    private UploadFileTask getUploadTask(final int notificationId, final String filename) {
         return new UploadFileTask(notificationId, DropboxClientFactory
                 .getClient(getApplicationContext()), new UploadFileTask.Callback() {
             @Override
             public void onUploadComplete(SharedLinkMetadata result) {
                 Timber.d("onUploadComplete: " + result.getUrl());
-                onFinishUpload(notificationId, lastModified);
+                onFinishUpload(notificationId);
                 ClipboardUtil.copy(getApplicationContext(), result.getUrl());
                 showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         "Загружен и скопирован " + filename, null);
@@ -194,7 +200,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 String error = e == null ? "Возможно проблемы с подключением" :
                         e.getLocalizedMessage();
                 Timber.e(error);
-                onFinishUpload(notificationId, lastModified);
+                onFinishUpload(notificationId);
                 showNotification(NOTIFICATION_TYPE_REPEAT, filename,
                         "Не удалось загрузить ¯\\(ツ)/¯", null);
                 showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
@@ -203,14 +209,9 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         });
     }
 
-    private void onFinishUpload(int notificationId, Long lastModified) {
+    private void onFinishUpload(int notificationId) {
         notificationManager.cancel(notificationId);
         removeCertainTask(notificationId);
-        if (!prefs.enabledMultiTasks()) {
-            if (lastModified != null) {
-                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
-            }
-        }
     }
 
     private void removeCertainTask(int notificationId) {
