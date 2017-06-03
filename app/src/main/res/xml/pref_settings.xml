@@ -27,6 +27,11 @@
         android:key="enableStartAfterReboot"
         android:title="@string/settings.after_reboot" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="enableMultiTasks"
+        android:title="@string/settings.multi_tasks" />
+
     <EditTextPreference
         android:key="screenshotsPath"
         android:title="Путь к скриншотам"

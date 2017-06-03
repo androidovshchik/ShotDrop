@@ -25,6 +25,7 @@ public final class Prefs {
     public static final String ENABLE_APPLICATION = "enableApplication";
     public static final String ENABLE_UPLOAD_ONLY_BY_WIFI = "enableUploadOnlyByWifi";
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
+    public static final String ENABLE_MULTI_TASKS = "enableMultiTasks";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
     public static final String DEBUG_MODE = "debugMode";
@@ -47,7 +48,7 @@ public final class Prefs {
         return preferences.getString(name, EMPTY).trim();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings("all")
     public <T> String getString(String name, T def) {
         return preferences.getString(name, toString(def)).trim();
     }
@@ -57,7 +58,7 @@ public final class Prefs {
         return preferences.getBoolean(name, false);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings("all")
     public boolean getBoolean(String name, boolean def) {
         return preferences.getBoolean(name, def);
     }
@@ -101,6 +102,10 @@ public final class Prefs {
         remove(USER_ID);
         remove(USER_EMAIL);
         remove(USER_DISPLAY_NAME);
+    }
+
+    public boolean enabledMultiTasks() {
+        return getBoolean(ENABLE_MULTI_TASKS, false);
     }
 
     public String getScreenshotsPath() {

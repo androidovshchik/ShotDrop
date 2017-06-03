@@ -53,6 +53,10 @@ public class FragmentSettings extends PreferenceFragment
                 .findPreference(Prefs.ENABLE_START_AFTER_REBOOT);
         enableStartAfterReboot.setOnPreferenceChangeListener(this);
 
+        Preference enableMultiTasks = getPreferenceManager()
+                .findPreference(Prefs.ENABLE_MULTI_TASKS);
+        enableMultiTasks.setOnPreferenceChangeListener(this);
+
         if (!prefs.has(Prefs.SCREENSHOTS_PATH)) {
             prefs.putString(Prefs.SCREENSHOTS_PATH, prefs.getScreenshotsPath());
         }
@@ -113,7 +117,7 @@ public class FragmentSettings extends PreferenceFragment
                     }
                 }
                 return true;
-            case Prefs.SCREENSHOTS_PATH: case Prefs.OBSERVER_CLASS:
+            case Prefs.ENABLE_MULTI_TASKS: case Prefs.SCREENSHOTS_PATH: case Prefs.OBSERVER_CLASS:
                 if (isServiceRunning) {
                     getActivity().stopService(ServiceMain.getStartIntent(getActivity()
                             .getApplicationContext()));

@@ -58,6 +58,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private Prefs prefs;
 
     private ArrayList<UploadFileTask> tasks;
+    private UploadFileTask task;
 
     private BroadcastReceiver cancelUploadReceiver = new BroadcastReceiver() {
 
@@ -76,7 +77,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     notificationManager.cancel(notificationId);
-                    newUploadTask(filename);
+                    startUploadTask(filename);
                     break;
                 default:
                     break;
@@ -98,8 +99,10 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
-        tasks = new ArrayList<>();
         prefs = new Prefs(getApplicationContext());
+        if (prefs.enabledMultiTasks()) {
+            tasks = new ArrayList<>();
+        }
         if (prefs.isClassFileObserver()) {
             fileObserver = new FileObserverClass(prefs.getScreenshotsPath(), this);
         }
@@ -138,23 +141,38 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     @Override
     public void onScreenshotTaken(String filename) {
-        newUploadTask(filename);
+        startUploadTask(filename);
     }
 
     /**
      * New task. New notification
      */
-    private void newUploadTask(final String filename) {
+    private void startUploadTask(String filename) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
             return;
         }
+        if (!prefs.enabledMultiTasks() && task != null) {
+            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                    "Пропущен новый скриншот", null);
+            return;
+        }
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "К загрузке " + filename, null);
-        final int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
+        int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
-        tasks.add(new UploadFileTask(notificationId, DropboxClientFactory
+        if (prefs.enabledMultiTasks()) {
+            tasks.add(getUploadTask(notificationId, filename));
+            tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
+        } else {
+            task = getUploadTask(notificationId, filename);
+            task.execute(prefs.getScreenshotsPath(), filename);
+        }
+    }
+
+    private UploadFileTask getUploadTask(final int notificationId, final String filename) {
+        return new UploadFileTask(notificationId, DropboxClientFactory
                 .getClient(getApplicationContext()), new UploadFileTask.Callback() {
             @Override
             public void onUploadComplete(SharedLinkMetadata result) {
@@ -178,12 +196,16 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         error, null);
             }
-        }));
-        tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
+        });
     }
 
     private void removeTask(int notificationId) {
-        for (int i =0; i < tasks.size(); i++) {
+        if (!prefs.enabledMultiTasks() && task != null) {
+            task.cancel(true);
+            task = null;
+            return;
+        }
+        for (int i = 0; i < tasks.size(); i++) {
             if (tasks.get(i).notificationId == notificationId) {
                 tasks.get(i).cancel(true);
                 tasks.remove(i);
@@ -192,9 +214,22 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         }
     }
 
+    private void removeAllTasks() {
+        if (!prefs.enabledMultiTasks() && task != null) {
+            task.cancel(true);
+            task = null;
+            return;
+        }
+        for (int i = tasks.size() - 1; i >= 0; i--) {
+            tasks.get(i).cancel(true);
+            tasks.remove(i);
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        removeAllTasks();
         if (prefs.isClassFileObserver() && fileObserver != null) {
             fileObserver.stop();
         }
