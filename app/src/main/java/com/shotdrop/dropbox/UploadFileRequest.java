@@ -121,6 +121,12 @@ public class UploadFileRequest implements okhttp3.Callback {
                         object.getString("error_summary"));
                 return;
             }
+            if (!object.has("id")) {
+                Timber.e("Ошибка при загрузке");
+                callback.onError(getNotificationId(call), getFilename(call),
+                        "Ошибка при загрузке");
+                return;
+            }
         } catch (JSONException e) {
             Timber.e(e.getLocalizedMessage());
             callback.onError(getNotificationId(call), getFilename(call), e.getLocalizedMessage());
