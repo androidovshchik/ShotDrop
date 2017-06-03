@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -114,8 +115,10 @@ public final class Prefs {
     }
 
     public String getScreenshotsPath() {
-        return getString(SCREENSHOTS_PATH, Environment.getExternalStoragePublicDirectory(Environment
-                .DIRECTORY_PICTURES) + "/Screenshots/");
+        String path = getString(SCREENSHOTS_PATH, Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) +
+                "/Screenshots/");
+        return !path.endsWith(File.separator) ? (path + File.separator) : path;
     }
 
     public boolean isClassFileObserver() {
