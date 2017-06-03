@@ -41,7 +41,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private static final String KEY_FILENAME = "filename";
     private static final int NOTIFICATION_TYPE_PRIMARY_START = 1;
     private static final int NOTIFICATION_TYPE_PRIMARY_UPDATE = 2;
-    private static final int NOTIFICATION_TYPE_CANCEL = 3;
+    private static final int NOTIFICATION_TYPE_UPLOAD = 3;
     private static final int NOTIFICATION_TYPE_REPEAT = 4;
     private static final int NOTIFICATION_PRIMARY_ID = 1;
     private int lastNotificationId = NOTIFICATION_PRIMARY_ID;
@@ -67,7 +67,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             switch (intent.getAction()) {
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
-                    onFinishUpload(notificationId);
+                    notificationManager.cancel(notificationId);
                     startUploadTask(filename);
                     break;
                 default:
@@ -155,7 +155,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         } else {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "К загрузке " + filename, null);
-            int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
+            int notificationId = showNotification(NOTIFICATION_TYPE_UPLOAD, filename,
                     "Идет загрузка...", null);
             tasks.add(getUploadTask(notificationId, filename));
             tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
@@ -196,7 +196,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     private void removeCertainTask(int notificationId) {
         for (int i = 0; i < tasks.size(); i++) {
             if (tasks.get(i).notificationId == notificationId) {
-                tasks.get(i).cancel(false);
                 tasks.remove(i);
                 break;
             }
@@ -205,7 +204,6 @@ public class ServiceMain extends Service implements ScreenshotCallback {
 
     private void removeAllTasks() {
         for (int i = tasks.size() - 1; i >= 0; i--) {
-            tasks.get(i).cancel(false);
             tasks.remove(i);
         }
     }
@@ -258,7 +256,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     return newNotificationId;
                 }
                 break;
-            case NOTIFICATION_TYPE_CANCEL:
+            case NOTIFICATION_TYPE_UPLOAD:
                 if (prevNotificationId != null) {
                     newNotificationId = prevNotificationId;
                 } else {
@@ -266,6 +264,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                     newNotificationId = lastNotificationId;
                 }
                 builder.setPriority(Notification.PRIORITY_MAX);
+                builder.setOngoing(true);
                 builder.setProgress(0, 0, true);
                 break;
             case NOTIFICATION_TYPE_REPEAT:

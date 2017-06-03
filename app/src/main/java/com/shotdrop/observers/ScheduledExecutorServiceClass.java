@@ -33,7 +33,6 @@ public class ScheduledExecutorServiceClass implements Runnable {
     public void run() {
         List<File> files = Arrays.asList(screenshotsFolder.listFiles());
         int count = files.size();
-        Timber.d("ScheduledExecutorServiceClass: Screenshots count: " + count);
         if (count <= 0) {
             return;
         }

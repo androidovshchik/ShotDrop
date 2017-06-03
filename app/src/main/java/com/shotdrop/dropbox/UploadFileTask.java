@@ -53,11 +53,10 @@ public class UploadFileTask extends AsyncTask<String, Void, SharedLinkMetadata> 
     @Override
     protected SharedLinkMetadata doInBackground(String... values) {
         try (InputStream inputStream = new FileInputStream(new File(values[0] + values[1]))) {
-            DbxUploader uploader = dbxClient.files()
+            dbxClient.files()
                     .uploadBuilder(File.separator + values[1])
                     .withMode(WriteMode.OVERWRITE)
-                    .start();
-            uploader.uploadAndFinish(inputStream);
+                    .uploadAndFinish(inputStream);
             return dbxClient.sharing()
                     .createSharedLinkWithSettings(File.separator + values[1]);
         } catch (DbxException | IOException e) {
