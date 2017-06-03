@@ -77,7 +77,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     notificationManager.cancel(notificationId);
-                    startUploadTask(filename);
+                    startUploadTask(filename, null);
                     break;
                 default:
                     break;
@@ -140,14 +140,14 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     @Override
-    public void onScreenshotTaken(String filename) {
-        startUploadTask(filename);
+    public void onScreenshotTaken(String filename, Integer lastModified) {
+        startUploadTask(filename, lastModified);
     }
 
     /**
      * New task. New notification
      */
-    private void startUploadTask(String filename) {
+    private void startUploadTask(String filename, Integer lastModified) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
@@ -163,22 +163,22 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         int notificationId = showNotification(NOTIFICATION_TYPE_CANCEL, filename,
                 "Идет загрузка...", null);
         if (prefs.enabledMultiTasks()) {
-            tasks.add(getUploadTask(notificationId, filename));
+            tasks.add(getUploadTask(notificationId, filename, lastModified));
             tasks.get(tasks.size() - 1).execute(prefs.getScreenshotsPath(), filename);
         } else {
-            task = getUploadTask(notificationId, filename);
+            task = getUploadTask(notificationId, filename, lastModified);
             task.execute(prefs.getScreenshotsPath(), filename);
         }
     }
 
-    private UploadFileTask getUploadTask(final int notificationId, final String filename) {
+    private UploadFileTask getUploadTask(final int notificationId, final String filename,
+                                         final Integer lastModified) {
         return new UploadFileTask(notificationId, DropboxClientFactory
                 .getClient(getApplicationContext()), new UploadFileTask.Callback() {
             @Override
             public void onUploadComplete(SharedLinkMetadata result) {
                 Timber.d("onUploadComplete: " + result.getUrl());
-                notificationManager.cancel(notificationId);
-                removeTask(notificationId);
+                onFinishUpload(notificationId, lastModified);
                 ClipboardUtil.copy(getApplicationContext(), result.getUrl());
                 showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         "Загружен и скопирован " + filename, null);
@@ -189,14 +189,25 @@ public class ServiceMain extends Service implements ScreenshotCallback {
                 String error = e == null ? "Возможно проблемы с подключением" :
                         e.getLocalizedMessage();
                 Timber.e(error);
-                notificationManager.cancel(notificationId);
-                removeTask(notificationId);
+                onFinishUpload(notificationId, lastModified);
                 showNotification(NOTIFICATION_TYPE_REPEAT, filename,
                         "Не удалось загрузить ¯\\(ツ)/¯", null);
                 showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                         error, null);
             }
         });
+    }
+
+    private void onFinishUpload(int notificationId, Integer lastModified) {
+        notificationManager.cancel(notificationId);
+        removeTask(notificationId);
+        if (!prefs.enabledMultiTasks()) {
+            if (lastModified != null) {
+                prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
+            }
+        } else {
+            prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
+        }
     }
 
     private void removeTask(int notificationId) {
