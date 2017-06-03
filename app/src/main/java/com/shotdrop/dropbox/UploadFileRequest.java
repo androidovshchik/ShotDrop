@@ -2,7 +2,9 @@ package com.shotdrop.dropbox;
 
 import android.content.Context;
 
+import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.shotdrop.utils.Prefs;
 import com.shotdrop.utils.RequestBinaryUtil;
 
@@ -14,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -59,7 +62,7 @@ public class UploadFileRequest implements okhttp3.Callback {
         JSONObject path = new JSONObject();
         try {
             tag.put("notificationId", notificationId);
-            tag.put("filename", File.separator + filename);
+            tag.put("filename", filename);
             path.put("path", File.separator + filename);
         } catch (JSONException e) {
             Timber.e(e.getLocalizedMessage());
@@ -112,14 +115,33 @@ public class UploadFileRequest implements okhttp3.Callback {
         }
         try {
             JSONObject object = new JSONObject(json);
-            .put("path", File.separator + filename);
+            if (object.has("error")) {
+                Timber.e(object.getString("error_summary"));
+                callback.onError(getNotificationId(call), getFilename(call),
+                        object.getString("error_summary"));
+                return;
+            }
         } catch (JSONException e) {
             Timber.e(e.getLocalizedMessage());
-            callback.onError(notificationId, e.getLocalizedMessage());
+            callback.onError(getNotificationId(call), getFilename(call), e.getLocalizedMessage());
             return;
         }
-        callback.onSuccess(getNotificationId(call), getFilename(call),  dbxClient.sharing()
-                .createSharedLinkWithSettings(File.separator + values[1]));
+        try {
+            List<SharedLinkMetadata> links = dbxClient.sharing().listSharedLinks().getLinks();
+            for (int i = 0; i < links.size(); i++) {
+                if (links.get(i).getPathLower().equals(File.separator +
+                        getFilename(call).toLowerCase())) {
+                    callback.onSuccess(getNotificationId(call), getFilename(call),
+                            links.get(i).getUrl());
+                    return;
+                }
+            }
+            callback.onSuccess(getNotificationId(call), getFilename(call),  dbxClient.sharing()
+                    .createSharedLinkWithSettings(File.separator + getFilename(call)).getUrl());
+        } catch (DbxException e) {
+            Timber.e(e.getLocalizedMessage());
+            callback.onError(getNotificationId(call), getFilename(call), e.getLocalizedMessage());
+        }
     }
 
     private int getNotificationId(Call call) {
