@@ -129,8 +129,8 @@ public class ServiceMain extends Service implements ScreenshotCallback {
             if (prefs.isClassScheduledExecutorService()) {
                 ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
                 scheduledFuture = timer.scheduleWithFixedDelay(
-                        new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(), this),
-                        0, 1, TimeUnit.SECONDS);
+                        new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(),
+                                getApplicationContext(), this), 0, 1, TimeUnit.SECONDS);
             }
             showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
                     "Служба запущена", null);
@@ -140,14 +140,14 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     @Override
-    public void onScreenshotTaken(String filename, Integer lastModified) {
+    public void onScreenshotTaken(String filename, Long lastModified) {
         startUploadTask(filename, lastModified);
     }
 
     /**
      * New task. New notification
      */
-    private void startUploadTask(String filename, Integer lastModified) {
+    private void startUploadTask(String filename, Long lastModified) {
         if (!conditions.checkOptional()) {
             showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                     "Остановлен по опциональным условиям", null);
@@ -172,7 +172,7 @@ public class ServiceMain extends Service implements ScreenshotCallback {
     }
 
     private UploadFileTask getUploadTask(final int notificationId, final String filename,
-                                         final Integer lastModified) {
+                                         final Long lastModified) {
         return new UploadFileTask(notificationId, DropboxClientFactory
                 .getClient(getApplicationContext()), new UploadFileTask.Callback() {
             @Override
@@ -198,15 +198,13 @@ public class ServiceMain extends Service implements ScreenshotCallback {
         });
     }
 
-    private void onFinishUpload(int notificationId, Integer lastModified) {
+    private void onFinishUpload(int notificationId, Long lastModified) {
         notificationManager.cancel(notificationId);
         removeTask(notificationId);
         if (!prefs.enabledMultiTasks()) {
             if (lastModified != null) {
                 prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, String.valueOf(lastModified));
             }
-        } else {
-            prefs.remove(Prefs.LAST_SCREENSHOT_MODIFIED);
         }
     }
 

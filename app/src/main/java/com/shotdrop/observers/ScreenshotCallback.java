@@ -2,5 +2,5 @@ package com.shotdrop.observers;
 
 public interface ScreenshotCallback {
 
-    void onScreenshotTaken(String filename, Integer lastModified);
+    void onScreenshotTaken(String filename, Long lastModified);
 }
