@@ -32,9 +32,10 @@ import timber.log.Timber;
 
 public class ServiceMain extends Service implements ScreenshotCallback, UploadFileRequest.Callback {
 
+    public static final String NOTIFICATION_ACTION_SCREENSHOT = "com.shotdrop.broadcast.screenshot";
     private static final String NOTIFICATION_ACTION_REPEAT = "com.shotdrop.broadcast.repeat";
-    private static final String KEY_NOTIFICATION_ID = "notificationId";
-    private static final String KEY_FILENAME = "filename";
+    public static final String KEY_FILENAME = "filename";
+    public static final String KEY_NOTIFICATION_ID = "notificationId";
     private static final int NOTIFICATION_TYPE_PRIMARY_START = 1;
     private static final int NOTIFICATION_TYPE_PRIMARY_UPDATE = 2;
     private static final int NOTIFICATION_TYPE_UPLOAD = 3;
@@ -65,6 +66,10 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
             int notificationId = intent.getIntExtra(KEY_NOTIFICATION_ID, 0);
             String filename = intent.getStringExtra(KEY_FILENAME);
             switch (intent.getAction()) {
+                case NOTIFICATION_ACTION_SCREENSHOT:
+                    Timber.d("NOTIFICATION_ACTION_SCREENSHOT");
+                    onScreenshotTaken(filename);
+                    break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
                     notificationManager.cancel(notificationId);
@@ -89,6 +94,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(NOTIFICATION_ACTION_REPEAT);
+        intentFilter.addAction(NOTIFICATION_ACTION_SCREENSHOT);
         registerReceiver(cancelUploadReceiver, intentFilter);
         conditions = new ConditionsUtil(getApplicationContext());
         request = new UploadFileRequest(getApplicationContext(), DropboxClientFactory
