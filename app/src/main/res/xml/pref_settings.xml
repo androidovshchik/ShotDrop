@@ -47,6 +47,11 @@
 
     <SwitchPreference
         android:defaultValue="false"
+        android:key="hideSystemNotifications"
+        android:title="@string/settings.hide_system" />
+
+    <SwitchPreference
+        android:defaultValue="false"
         android:key="debugMode"
         android:title="@string/settings.debug_mode" />
 

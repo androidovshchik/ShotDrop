@@ -29,6 +29,8 @@ public final class Prefs {
     public static final String ENABLE_MULTI_TASKS = "enableMultiTasks";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
+
+    public static final String HIDE_SYSTEM_NOTIFICATIONS = "hideSystemNotifications";
     public static final String DEBUG_MODE = "debugMode";
 
     public static final String OBSERVER_CLASS = "observerClass";

@@ -2,7 +2,7 @@
 <resources>
     <string-array name="classesArray">
         <item>FileObserver</item>
-        <item>NotificationListenerClass</item>
+        <item>NotificationListenerService</item>
     </string-array>
     <string-array name="classesValues">
         <item>1</item>

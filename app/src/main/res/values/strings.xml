@@ -18,6 +18,7 @@
     <string name="settings.only_wifi">Загрузка по Wifi</string>
     <string name="settings.after_reboot">Автозапуск</string>
     <string name="settings.multi_tasks">Многозадачность</string>
+    <string name="settings.hide_system">Скрывать системные уведомления</string>
     <string name="settings.debug_mode">Режим разработчика</string>
 
     <string name="settings.user_title">Пользователь</string>

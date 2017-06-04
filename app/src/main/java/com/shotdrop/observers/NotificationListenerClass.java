@@ -6,6 +6,8 @@ import android.os.Build;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.view.Gravity;
+import android.widget.Toast;
 
 import com.shotdrop.ServiceMain;
 import com.shotdrop.utils.LogUtil;
@@ -35,18 +37,26 @@ public class NotificationListenerClass extends NotificationListenerService {
     @Override
     @SuppressWarnings("deprecation")
     public void onNotificationPosted(StatusBarNotification notification) {
-        //if (!ServiceMain.isRunning(getApplicationContext())) {
-        //    return;
-        //}
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cancelNotification(notification.getKey());
-        } else {
-            cancelNotification(notification.getPackageName(), notification.getTag(),
-                    notification.getId());
+        if (!ServiceMain.isRunning(getApplicationContext())) {
+            return;
         }
-        logNotification(notification);
         if (prefs == null) {
             prefs = new Prefs(getApplicationContext());
+        }
+        if (prefs.getBoolean(Prefs.HIDE_SYSTEM_NOTIFICATIONS)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                cancelNotification(notification.getKey());
+            } else {
+                cancelNotification(notification.getPackageName(), notification.getTag(),
+                        notification.getId());
+            }
+        }
+        logNotification(notification);
+        if (prefs.getBoolean(Prefs.DEBUG_MODE)) {
+            Toast toast = Toast.makeText(getApplicationContext(), notification.getPackageName(),
+                    Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
         }
         switch (notification.getPackageName()) {
             case COM_ANDROID_SYSTEMUI:
