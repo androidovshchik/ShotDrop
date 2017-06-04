@@ -43,7 +43,8 @@ public class NotificationListenerClass extends NotificationListenerService {
         if (prefs == null) {
             prefs = new Prefs(getApplicationContext());
         }
-        if (prefs.getBoolean(Prefs.HIDE_SYSTEM_NOTIFICATIONS)) {
+        if (prefs.getBoolean(Prefs.HIDE_SYSTEM_NOTIFICATIONS) &&
+                notification.getPackageName().equals(COM_ANDROID_SYSTEMUI)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 cancelNotification(notification.getKey());
             } else {
