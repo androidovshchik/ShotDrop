@@ -130,18 +130,9 @@ public class FragmentSettings extends PreferenceFragment
                 }
                 return true;
             case Prefs.ENABLE_MULTI_TASKS: case Prefs.SCREENSHOTS_PATH: case Prefs.OBSERVER_CLASS:
-                if (isServiceRunning) {
-                    getActivity().stopService(ServiceMain.getStartIntent(getActivity()
-                            .getApplicationContext()));
-                }
-                if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
-                    prefs.putBoolean(Prefs.ENABLE_APPLICATION, false);
-                    applyMainSwitches();
-                    Toast.makeText(getActivity().getApplicationContext(),
-                            getString(R.string.alert_stop), Toast.LENGTH_SHORT)
-                            .show();
-                }
-                if (preference.getKey().equals(Prefs.OBSERVER_CLASS) && newValue.equals("2") &&
+            case Prefs.HIDE_SYSTEM_NOTIFICATIONS:
+                if ((preference.getKey().equals(Prefs.OBSERVER_CLASS) && newValue.equals("2") ||
+                        preference.getKey().equals(Prefs.HIDE_SYSTEM_NOTIFICATIONS)) &&
                         !isNotificationServiceEnabled()) {
                     alertDialog.setMessage(getString(R.string.prompt_notifications));
                     alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
@@ -154,6 +145,19 @@ public class FragmentSettings extends PreferenceFragment
                             getString(android.R.string.cancel), this);
                     alertDialog.show();
                     return false;
+                }
+                if (!preference.getKey().equals(Prefs.HIDE_SYSTEM_NOTIFICATIONS)) {
+                    if (isServiceRunning) {
+                        getActivity().stopService(ServiceMain.getStartIntent(getActivity()
+                                .getApplicationContext()));
+                    }
+                    if (prefs.getBoolean(Prefs.ENABLE_APPLICATION)) {
+                        prefs.putBoolean(Prefs.ENABLE_APPLICATION, false);
+                        applyMainSwitches();
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                getString(R.string.alert_stop), Toast.LENGTH_SHORT)
+                                .show();
+                    }
                 }
                 return true;
         }
