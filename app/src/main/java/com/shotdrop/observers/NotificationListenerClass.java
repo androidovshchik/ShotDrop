@@ -1,7 +1,9 @@
 package com.shotdrop.observers;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
+import android.content.Intent;
+import android.os.IBinder;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 
 import com.shotdrop.utils.Prefs;
 
@@ -13,7 +15,7 @@ import java.util.List;
 
 import timber.log.Timber;
 
-public class ScheduledExecutorServiceClass implements Runnable {
+public class NotificationListenerClass extends NotificationListenerService {
 
     private ScreenshotCallback callback;
 
@@ -21,14 +23,23 @@ public class ScheduledExecutorServiceClass implements Runnable {
 
     private Prefs prefs;
 
-    public ScheduledExecutorServiceClass(@NonNull String path, @NonNull Context context,
-                                         @NonNull ScreenshotCallback callback) {
-        this.screenshotsFolder = new File(path);
-        this.prefs = new Prefs(context);
-        this.callback = callback;
+    @Override
+    public IBinder onBind(Intent intent) {
+        return super.onBind(intent);
     }
 
     @Override
+    public void onNotificationPosted(StatusBarNotification notification) {
+        switch (notification.getPackageName()) {
+            default:
+                Timber.d(notification.getPackageName());
+                break;
+        }
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification notification) {}
+
     public void run() {
         List<File> files = Arrays.asList(screenshotsFolder.listFiles());
         int count = files.size();

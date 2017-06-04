@@ -21,18 +21,12 @@ import android.widget.Toast;
 
 import com.shotdrop.dropbox.DropboxClientFactory;
 import com.shotdrop.dropbox.UploadFileRequest;
-import com.shotdrop.observers.ScheduledExecutorServiceClass;
 import com.shotdrop.observers.ScreenshotCallback;
 import com.shotdrop.utils.ConditionsUtil;
 import com.shotdrop.utils.ComponentUtil;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.Prefs;
 import com.shotdrop.observers.FileObserverClass;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
@@ -59,7 +53,6 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
     private UploadFileRequest request;
 
     private FileObserverClass fileObserver;
-    private ScheduledFuture<?> scheduledFuture;
 
     private Prefs prefs;
 
@@ -125,10 +118,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                 fileObserver.start();
             }
             if (prefs.isClassScheduledExecutorService()) {
-                ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
-                scheduledFuture = timer.scheduleWithFixedDelay(
-                        new ScheduledExecutorServiceClass(prefs.getScreenshotsPath(),
-                                getApplicationContext(), this), 0, 1, TimeUnit.SECONDS);
+
             }
             showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
                     "Служба запущена", null);
@@ -198,8 +188,8 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         if (prefs.isClassFileObserver() && fileObserver != null) {
             fileObserver.stop();
         }
-        if (prefs.isClassScheduledExecutorService() && scheduledFuture != null) {
-            scheduledFuture.cancel(false);
+        if (prefs.isClassScheduledExecutorService()) {
+
         }
         unregisterReceiver(cancelUploadReceiver);
         stopForeground(true);
