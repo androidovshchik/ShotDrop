@@ -9,6 +9,7 @@
     <string name="alert.stop">Служба остановлена</string>
     <string name="prompt.logout">Вы уверены, что хотите открепить аккаунт?</string>
     <string name="prompt.permissions">Доступны не все разрешения, поробовать еще раз?</string>
+    <string name="prompt.notifications">Для работы этого класса требуется доступ ко всем уведомлениям</string>
     <string name="prompt.settings">Для работы приложения необходимо вручную дать разрешения</string>
     <string name="prompt.require_account">Требуется аккаунт Dropbox</string>
 

@@ -2,6 +2,7 @@ package com.shotdrop;
 
 import android.content.ComponentName;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -142,7 +143,16 @@ public class FragmentSettings extends PreferenceFragment
                 }
                 if (preference.getKey().equals(Prefs.OBSERVER_CLASS) && newValue.equals("2") &&
                         !isNotificationServiceEnabled()) {
-
+                    alertDialog.setMessage(getString(R.string.prompt_notifications));
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
+                            getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    startActivity(new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                                }
+                            });
+                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,
+                            getString(android.R.string.cancel), this);
+                    alertDialog.show();
                     return false;
                 }
                 return true;
