@@ -1,5 +1,6 @@
 package com.shotdrop;
 
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
@@ -7,8 +8,10 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -22,6 +25,10 @@ import timber.log.Timber;
 
 public class FragmentSettings extends PreferenceFragment
         implements Preference.OnPreferenceChangeListener, DialogInterface.OnClickListener {
+
+    private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
+    private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS =
+            "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
 
     private SwitchPreference enableDropboxAccount;
     private SwitchPreference enableApplication;
@@ -133,6 +140,11 @@ public class FragmentSettings extends PreferenceFragment
                             getString(R.string.alert_stop), Toast.LENGTH_SHORT)
                             .show();
                 }
+                if (preference.getKey().equals(Prefs.OBSERVER_CLASS) && newValue.equals("2") &&
+                        !isNotificationServiceEnabled()) {
+
+                    return false;
+                }
                 return true;
         }
         return true;
@@ -206,5 +218,29 @@ public class FragmentSettings extends PreferenceFragment
                 list.setPadding(0, 0, 0, 0);
             }
         }
+    }
+
+    /**
+     * Is Notification Service Enabled.
+     * Verifies if the notification listener service is enabled.
+     * @return True if eanbled, false otherwise.
+     */
+    @SuppressWarnings("all")
+    private boolean isNotificationServiceEnabled() {
+        String packageName = getActivity().getPackageName();
+        final String flat = Settings.Secure.getString(getActivity().getContentResolver(),
+                ENABLED_NOTIFICATION_LISTENERS);
+        if (!TextUtils.isEmpty(flat)) {
+            final String[] names = flat.split(":");
+            for (int i = 0; i < names.length; i++) {
+                final ComponentName componentName = ComponentName.unflattenFromString(names[i]);
+                if (componentName != null) {
+                    if (TextUtils.equals(packageName, componentName.getPackageName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
