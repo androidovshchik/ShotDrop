@@ -35,7 +35,7 @@ public class ActivityMain extends DropboxPreferenceActivity implements
 
     private Prefs prefs;
 
-    private boolean needShowWindows = false;
+    private boolean onUnableShowPromptWindows = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +112,7 @@ public class ActivityMain extends DropboxPreferenceActivity implements
                         needPermissions = true;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                                 !shouldShowRequestPermissionRationale(permission)) {
-                            needShowWindows = true;
+                            onUnableShowPromptWindows = true;
                             alertDialog.setMessage(getString(R.string.prompt_settings));
                             alertDialog.show();
                             return;
@@ -131,7 +131,7 @@ public class ActivityMain extends DropboxPreferenceActivity implements
     public void onClick(DialogInterface dialog, int which) {
         switch (which){
             case DialogInterface.BUTTON_POSITIVE:
-                if (needShowWindows) {
+                if (onUnableShowPromptWindows) {
                     openAppSettings();
                     finish();
                 } else {
