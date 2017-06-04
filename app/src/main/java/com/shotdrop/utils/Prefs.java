@@ -122,10 +122,10 @@ public final class Prefs {
     }
 
     public boolean isClassFileObserver() {
-        return getString(OBSERVER_CLASS).equals("1") || !isClassScheduledExecutorService();
+        return getString(OBSERVER_CLASS).equals("1") || !isClassNotificationListenerClass();
     }
 
-    public boolean isClassScheduledExecutorService() {
+    public boolean isClassNotificationListenerClass() {
         return getString(OBSERVER_CLASS).equals("2");
     }
 

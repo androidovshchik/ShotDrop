@@ -117,7 +117,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
             if (prefs.isClassFileObserver()) {
                 fileObserver.start();
             }
-            if (prefs.isClassScheduledExecutorService()) {
+            if (prefs.isClassNotificationListenerClass()) {
 
             }
             showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
@@ -188,7 +188,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         if (prefs.isClassFileObserver() && fileObserver != null) {
             fileObserver.stop();
         }
-        if (prefs.isClassScheduledExecutorService()) {
+        if (prefs.isClassNotificationListenerClass()) {
 
         }
         unregisterReceiver(cancelUploadReceiver);
