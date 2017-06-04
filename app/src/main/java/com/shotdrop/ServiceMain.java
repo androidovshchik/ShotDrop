@@ -68,7 +68,9 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
             switch (intent.getAction()) {
                 case NOTIFICATION_ACTION_SCREENSHOT:
                     Timber.d("NOTIFICATION_ACTION_SCREENSHOT");
-                    onScreenshotTaken(filename);
+                    if (prefs.isClassNotificationListenerClass()) {
+                        onScreenshotTaken(filename);
+                    }
                     break;
                 case NOTIFICATION_ACTION_REPEAT:
                     Timber.d("NOTIFICATION_ACTION_REPEAT");
@@ -90,6 +92,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         wakeLock.acquire();
         clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         toastHandler = new Handler();
+        prefs = new Prefs(getApplicationContext());
         notificationManager = (NotificationManager) getApplicationContext()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         IntentFilter intentFilter = new IntentFilter();
@@ -99,7 +102,6 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         conditions = new ConditionsUtil(getApplicationContext());
         request = new UploadFileRequest(getApplicationContext(), DropboxClientFactory
                 .getClient(getApplicationContext()), this);
-        prefs = new Prefs(getApplicationContext());
         if (prefs.isClassFileObserver()) {
             fileObserver = new FileObserverClass(prefs.getScreenshotsPath(), this);
         }
@@ -123,9 +125,6 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
             if (prefs.isClassFileObserver()) {
                 fileObserver.start();
             }
-            if (prefs.isClassNotificationListenerClass()) {
-
-            }
             showNotification(NOTIFICATION_TYPE_PRIMARY_START, getString(R.string.app_name),
                     "Служба запущена", null);
             return START_STICKY;
@@ -141,14 +140,12 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                     "Остановлен по опциональным условиям", null);
             return;
         }
-        if (!prefs.enabledMultiTasks()) {
-            if (hasWorkingRequest) {
-                showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
-                        "Пропущен скриншот", null);
-                return;
-            }
-            hasWorkingRequest = true;
+        if (hasWorkingRequest) {
+            showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
+                    "Пропущен новый скриншот", null);
+            return;
         }
+        hasWorkingRequest = true;
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "К загрузке " + filename, null);
         int notificationId = showNotification(NOTIFICATION_TYPE_UPLOAD, filename,
@@ -163,9 +160,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         clipboard.setPrimaryClip(clip);
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 "Загружен и скопирован " + filename, null);
-        if (!prefs.enabledMultiTasks()) {
-            hasWorkingRequest = false;
-        }
+        hasWorkingRequest = false;
         toastHandler.post(new Runnable() {
             public void run() {
                 Toast toast = Toast.makeText(getApplicationContext(),
@@ -183,9 +178,7 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
                 "Не удалось загрузить ¯\\(ツ)/¯", null);
         showNotification(NOTIFICATION_TYPE_PRIMARY_UPDATE, getString(R.string.app_name),
                 message, null);
-        if (!prefs.enabledMultiTasks()) {
-            hasWorkingRequest = false;
-        }
+        hasWorkingRequest = false;
     }
 
     @Override
@@ -193,9 +186,6 @@ public class ServiceMain extends Service implements ScreenshotCallback, UploadFi
         super.onDestroy();
         if (prefs.isClassFileObserver() && fileObserver != null) {
             fileObserver.stop();
-        }
-        if (prefs.isClassNotificationListenerClass()) {
-
         }
         unregisterReceiver(cancelUploadReceiver);
         stopForeground(true);

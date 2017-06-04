@@ -26,7 +26,6 @@ public final class Prefs {
     public static final String ENABLE_APPLICATION = "enableApplication";
     public static final String ENABLE_UPLOAD_ONLY_BY_WIFI = "enableUploadOnlyByWifi";
     public static final String ENABLE_START_AFTER_REBOOT = "enableStartAfterReboot";
-    public static final String ENABLE_MULTI_TASKS = "enableMultiTasks";
 
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
 
@@ -101,16 +100,12 @@ public final class Prefs {
         putBoolean(ENABLE_APPLICATION, false);
         putBoolean(ENABLE_START_AFTER_REBOOT, false);
         putBoolean(ENABLE_UPLOAD_ONLY_BY_WIFI, false);
-        putBoolean(ENABLE_MULTI_TASKS, false);
+        putBoolean(HIDE_SYSTEM_NOTIFICATIONS, false);
         putBoolean(DEBUG_MODE, false);
         remove(ACCESS_TOKEN);
         remove(USER_ID);
         remove(USER_EMAIL);
         remove(USER_DISPLAY_NAME);
-    }
-
-    public boolean enabledMultiTasks() {
-        return getBoolean(ENABLE_MULTI_TASKS, false);
     }
 
     public String getScreenshotsPath() {
