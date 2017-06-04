@@ -31,9 +31,6 @@ public final class Prefs {
     public static final String SCREENSHOTS_PATH = "screenshotsPath";
     public static final String DEBUG_MODE = "debugMode";
 
-    // for non multi-tasks
-    public static final String LAST_SCREENSHOT_MODIFIED = "lastScreenshotModified";
-
     public static final String OBSERVER_CLASS = "observerClass";
 
     /* Util strings */

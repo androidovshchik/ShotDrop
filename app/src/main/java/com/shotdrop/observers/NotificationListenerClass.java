@@ -6,7 +6,6 @@ import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
-import com.shotdrop.ServiceMain;
 import com.shotdrop.utils.LogUtil;
 import com.shotdrop.utils.Prefs;
 
@@ -22,8 +21,6 @@ public class NotificationListenerClass extends NotificationListenerService {
 
     public static final String COM_ANDROID_SYSTEMUI = "com.android.systemui";
 
-    private ScreenshotCallback callback;
-
     private File screenshotsFolder;
 
     private Prefs prefs;
@@ -38,14 +35,11 @@ public class NotificationListenerClass extends NotificationListenerService {
         //if (!ServiceMain.isRunning(getApplicationContext())) {
         //    return;
         //}
-        if (prefs == null) {
-            prefs = new Prefs(getApplicationContext());
-        }
         logNotification(notification);
         switch (notification.getPackageName()) {
             case COM_ANDROID_SYSTEMUI:
                 if (notification.getNotification().contentIntent != null) {
-                    Timber.d("onScreenshotReady");
+                    onScreenshotReady();
                 }
                 break;
             default:
@@ -56,7 +50,13 @@ public class NotificationListenerClass extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification notification) {}
 
-    public void run() {
+    public void onScreenshotReady() {
+        if (prefs == null) {
+            prefs = new Prefs(getApplicationContext());
+        }
+        if (screenshotsFolder == null) {
+            screenshotsFolder = new File(prefs.getScreenshotsPath());
+        }
         List<File> files = Arrays.asList(screenshotsFolder.listFiles());
         int count = files.size();
         if (count <= 0) {
@@ -68,25 +68,8 @@ public class NotificationListenerClass extends NotificationListenerService {
                 return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
             }
         });
-        long lastModifiedMemory = lastModifiedFromMemory();
-        if (lastModifiedMemory == 0) {
-            lastModifiedMemory = files.get(count - 1).lastModified();
-            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED, lastModifiedMemory);
-        }
-        if (files.get(count - 1).lastModified() > lastModifiedMemory) {
-            prefs.putString(Prefs.LAST_SCREENSHOT_MODIFIED,
-                    files.get(count - 1).lastModified());
-            callback.onScreenshotTaken(files.get(count - 1).getName());
-        }
-    }
-
-    private long lastModifiedFromMemory() {
-        try {
-            return Long.parseLong(prefs.getString(Prefs.LAST_SCREENSHOT_MODIFIED, "0"));
-        } catch (NumberFormatException e) {
-            Timber.e(e.getLocalizedMessage());
-            return 0;
-        }
+        //callback.onScreenshotTaken(files.get(count - 1).getName());
+        //files.get(count - 1).lastModified()
     }
 
     private void logNotification(StatusBarNotification notification) {
