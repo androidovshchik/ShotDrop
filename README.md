@@ -11,10 +11,10 @@ Analog of [ShotDrop (Screenshot Sharer)](https://play.google.com/store/apps/deta
 * others
 
 ### Binaries:
-[Download apk here](https://bitbucket.org/mrcpp/shotdrop/downloads/)
+[Download apk here](https://bitbucket.org/androidovshchik/shotdrop/downloads/)
 
 ### Developer
 Vlad Kalyuzhnyu [<gimrcpp@gmail.com>](mailto:gimrcpp@gmail.com)
 ### Screenshots:
-| ![](https://bitbucket.org/mrcpp/shotdrop/downloads/Screenshot_20170604-122357.png)  |  ![](https://bitbucket.org/mrcpp/shotdrop/downloads/Screenshot_20170604-122404.png) | ![](https://bitbucket.org/mrcpp/shotdrop/downloads/Screenshot_20170604-122418.png) |
+| ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122357.png)  |  ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122404.png) | ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122418.png) |
 | --- | --- | --- |
