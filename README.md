@@ -1,5 +1,5 @@
 # ShotDrop++
-Analog of [ShotDrop (Screenshot Sharer)](https://play.google.com/store/apps/details?id=com.humayoun.shotdropfree).But more functional and working
+Analog of [ShotDrop (Screenshot Sharer)](https://play.google.com/store/apps/details?id=com.humayoun.shotdropfree). But more functional and working
 
 ### Features:
 * Two methods for observing any path (on some devices first way not working)
@@ -11,10 +11,13 @@ Analog of [ShotDrop (Screenshot Sharer)](https://play.google.com/store/apps/deta
 * others
 
 ### Binaries:
-[Download apk here](https://bitbucket.org/androidovshchik/shotdrop/downloads/)
+[Download apk here](https://github.com/androidovshchik/ShotDrop/releases)
 
 ### Developer
-Vlad Kalyuzhnyu [<gimrcpp@gmail.com>](mailto:gimrcpp@gmail.com)
+Vlad Kalyuzhnyu
+
+[website](https://андроидовщик.рф)
+
 ### Screenshots:
-| ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122357.png)  |  ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122404.png) | ![](https://bitbucket.org/androidovshchik/shotdrop/downloads/Screenshot_20170604-122418.png) |
+| ![](https://github.com/androidovshchik/ShotDrop/blob/master/art/Screenshot_20170604-122357.png?raw=true)  |  ![](https://github.com/androidovshchik/ShotDrop/blob/master/art/Screenshot_20170604-122404.png?raw=true) | ![](https://github.com/androidovshchik/ShotDrop/blob/master/art/Screenshot_20170604-122418.png?raw=true) |
 | --- | --- | --- |
