@@ -1,4 +1,11 @@
 # ShotDrop++
+
+<p>
+  <a href="https://www.paypal.me/mrcpp" title="Donate to this project using Paypal">
+    <img src="https://img.shields.io/badge/paypal-donate-green.svg" alt="PayPal donate button" height="18"/>
+  </a>
+</p>
+
 Analog of [ShotDrop (Screenshot Sharer)](https://play.google.com/store/apps/details?id=com.humayoun.shotdropfree). But more functional and working
 
 ## Features
